@@ -1,0 +1,15 @@
+html {
+
+    scroll-behavior: smooth;
+
+}
+
+body {
+
+    background: var(--bg-primary);
+
+    color: var(--text-primary);
+
+    font-family: Inter, sans-serif;
+
+}

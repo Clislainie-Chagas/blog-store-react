@@ -1,0 +1,24 @@
+:root {
+
+    /* Fundo */
+
+    --bg-primary: #020617;
+    --bg-secondary: #0B1029;
+    --bg-card: #111827;
+
+    /* Cores principais */
+
+    --primary: #7C3AED;
+    --secondary: #4F8CFF;
+    --accent: #D8B4FE;
+
+    /* Texto */
+
+    --text-primary: #F8FAFC;
+    --text-secondary: #CBD5E1;
+
+    /* Bordas */
+
+    --border: #334155;
+
+}
