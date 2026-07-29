@@ -1,72 +1,51 @@
-import { ShoppingCart, User } from "lucide-react";
-import { Link } from "react-router-dom";
-
+import { NavLink } from "react-router-dom";
+import SearchBar from "../ui/SearchBar";
 
 export default function Navbar() {
     return (
-        <nav className="bg-slate-900 text-white px-6 py-4">
+        <header className="sticky top-0 z-50 border-b border-white/10 bg-slate-950/70 backdrop-blur-xl">
+            <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
 
-            <div className="max-w-7xl mx-auto flex items-center justify-between">
-
-                <Link
+                <NavLink
                     to="/"
-                    className="text-2xl font-bold">
-                    ARTE DA<br />
-                    <span className="text-4xl">MAGIA</span>
-                </Link>
+                    className="text-2xl font-bold tracking-wide text-white"
+                >
+                    {" "}
+                    <span className="bg-gradient-to-r from-violet-400 via-blue-300 to-pink-300 bg-clip-text text-transparent">
+                        <strong>ARTE DA MAGIA</strong>
+                    </span>
+                </NavLink>
+
+                <SearchBar />
+                <div className="flex items-center gap-8"></div>
 
 
-                <div className="flex items-center gap-6">
 
-                    <Link
-                        to="/"
-                        className="hover:text-blue-300"
-                    >
+                <div className="flex items-center gap-8">
+
+                    <NavLink to="/">
                         Home
-                    </Link>
+                    </NavLink>
 
-                    <Link
-                        to="/blog"
-                        className="hover:text-blue-300"
-                    >
+                    <NavLink to="/blog">
                         Blog
-                    </Link>
+                    </NavLink>
 
-                    <Link
-                        to="/store"
-                        className="hover:text-blue-300"
-                    >
+                    <NavLink to="/store">
                         Loja
-                    </Link>
+                    </NavLink>
 
-                    <Link
-                        to="/about"
-                        className="hover:text-blue-300"
-                    >
+                    <NavLink to="/about">
                         Sobre
-                    </Link>
+                    </NavLink>
 
-                    <Link
-                        to="/contact"
-                        className="hover:text-blue-300"
-                    >
+                    <NavLink to="/contact">
                         Contato
-                    </Link>
-
-
-                    <button className="hover:text-blue-300">
-                        <ShoppingCart />
-                    </button>
-
-
-                    <button className="hover:text-blue-300">
-                        <User />
-                    </button>
+                    </NavLink>
 
                 </div>
 
-            </div>
-
-        </nav>
+            </nav>
+        </header>
     );
 }

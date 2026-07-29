@@ -1,12 +1,15 @@
 import BookCard from "./BookCard";
-import books from "../../../data/books";
+import { books } from "../../../data/books";
+import SectionTitle from "../../../components/ui/SectionTitle";
 
 export default function FeaturedBooks() {
     return (
         <section className="max-w-7xl mx-auto px-6 py-20">
-            <h2 className="text-4xl font-bold text-white mb-10">
-                Livros em Destaque
-            </h2>
+            <SectionTitle
+                subtitle="Biblioteca"
+                title="Livros em Destaque"
+                description="Conheça algumas obras selecionadas para inspirar sua jornada através da literatura, da imaginação e do conhecimento."
+            />
 
             <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
                 {books.map((book) => (
