@@ -1,8 +1,11 @@
 import BookCard from "./BookCard";
-import { books } from "../../../data/books";
+import useBooks from "../../../hooks/useBooks";
 import SectionTitle from "../../../components/ui/SectionTitle";
 
 export default function FeaturedBooks() {
+
+    const books = useBooks()
+
     return (
         <section className="max-w-7xl mx-auto px-6 py-20">
             <SectionTitle
