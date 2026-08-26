@@ -1,3 +1,7 @@
+import universoParalelo from "../../assets/images/CapaLivroUnivers.jpg";
+import amizadeColorida from "../../assets/images/CapaLivroAmiza_.jpg";
+import envelhecimentoPrecoce from "../../assets/images/CapaEnvelhece.jpg";
+
 const books = [
   {
     id: 1,
@@ -6,7 +10,9 @@ const books = [
     category: "Romance",
     price: 79.90,
     rating: 5,
-    cover: "https://placehold.co/300x450"
+    cover: universoParalelo,
+    description:
+      "Uma jornada entre mundos, segredos e histórias esquecidas, onde cada descoberta pode mudar para sempre o destino daqueles que ousam atravessar os limites do conhecido.",
   },
   {
     id: 2,
@@ -15,16 +21,20 @@ const books = [
     category: "Conto Erótico",
     price: 19.90,
     rating: 4,
-    cover: "https://placehold.co/300x450"
+    cover: amizadeColorida,
+    description:
+      "Uma jornada entre mundos, segredos e histórias esquecidas, onde cada descoberta pode mudar para sempre o destino daqueles que ousam atravessar os limites do conhecido.",
   },
   {
     id: 3,
-    title: "Além das Constelações",
+    title: "Envelhecimento Precoce",
     author: "Clis Chagas",
     category: "Ficção Científica",
     price: 69.90,
     rating: 5,
-    cover: "https://placehold.co/300x450"
+    cover: envelhecimentoPrecoce,
+    description:
+      "Uma jornada entre mundos, segredos e histórias esquecidas, onde cada descoberta pode mudar para sempre o destino daqueles que ousam atravessar os limites do conhecido.",
   }
 ];
 

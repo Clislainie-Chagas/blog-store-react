@@ -11,15 +11,16 @@ export default function Navbar() {
                     className="text-2xl font-bold tracking-wide text-white"
                 >
                     {" "}
-                    <span className="bg-gradient-to-r from-violet-400 via-blue-300 to-pink-300 bg-clip-text text-transparent">
+                    <span className="bg-linear-to-r from-violet-400 via-blue-300 to-pink-300 bg-clip-text text-transparent">
                         <strong>ARTE DA MAGIA</strong>
                     </span>
+                    {/* <span className="bg-gradient-to-r from-violet-400 via-blue-300 to-pink-300 bg-clip-text text-transparent">
+                        <strong>ARTE DA MAGIA</strong>
+                    </span> */}
                 </NavLink>
 
                 <SearchBar />
                 <div className="flex items-center gap-8"></div>
-
-
 
                 <div className="flex items-center gap-8">
 

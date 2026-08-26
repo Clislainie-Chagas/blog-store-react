@@ -2,40 +2,91 @@ import Rating from "../../../components/ui/Rating";
 import Button from "../../../components/ui/Button";
 import Badge from "../../../components/ui/Badge";
 import Card from "../../../components/ui/Card";
-export default function BookCard({ title, author, category, price, rating, cover }) {
+import { Link } from "react-router-dom";
 
+export default function BookCard({
+    id,
+    title,
+    author,
+    category,
+    price,
+    rating,
+    cover,
+}) {
     return (
-        <article className="rounded-2xl border border-slate-700 bg-slate-900/60 p-6 transition hover:scale-105 hover:border-violet-500 gap-1">
+        <article className="transition duration-300 hover:scale-[1.02]">
 
-            <Card className="mb-4 h-52 rounded-xl bg-gradient-to-br from-violet-500 via-blue-500 to-slate-900 absolute"></Card>
+            <Card className="h-full overflow-hidden p-6">
 
-            <img className="mb-4 h-52 rounded-xl relative" src={cover} alt={title} />
+                {/* CAPA */}
+                <div className="relative mb-6 h-64 overflow-hidden rounded-xl">
 
-            <Badge>{category}</Badge>
+                    <img
+                        src={cover}
+                        alt={`Capa do livro ${title}`}
+                        className="h-full w-full object-cover"
+                        onError={(e) => {
+                            e.currentTarget.style.display = "none";
+                            e.currentTarget.nextElementSibling.style.display = "flex";
+                        }}
+                    />
 
-            <h3 className="mt-2 text-xl font-bold text-white">
-                {title}
-            </h3>
+                    <div className="hidden h-full w-full items-center justify-center bg-gradient-to-br from-slate-950 via-violet-950 to-blue-950 p-6 text-center">
 
-            <p className="mt-1 text-slate-400">
-                {author}
-            </p>
-            <p className="px-1">R$ {price}</p>
+                        <div>
+                            <span className="text-xs uppercase tracking-[0.3em] text-violet-300">
+                                {category}
+                            </span>
 
-            <Rating value={rating} />
+                            <h3 className="mt-4 text-2xl font-bold text-white">
+                                {title}
+                            </h3>
 
-            <div>
-                <Button className="mt-4 px-2 transition hover:scale-105 hover:border-violet-500">
-                    Comprar</Button>
-            </div>
+                            <p className="mt-3 text-sm text-slate-300">
+                                {author}
+                            </p>
+                        </div>
 
-            {/* <Button variant="secondary">
-                Favoritar
-            </Button> */}
+                    </div>
 
-            {/* <Button variant="outline">
-                Ler mais
-            </Button> */}
+                </div>
+
+                <Badge>
+                    {category}
+                </Badge>
+
+                <h3 className="mt-4 text-xl font-bold text-white">
+                    {title}
+                </h3>
+
+                <p className="mt-1 text-slate-400">
+                    {author}
+                </p>
+
+                <div className="mt-4 flex items-center justify-between">
+                    <p className="text-lg font-semibold text-violet-300">
+                        {price}
+                    </p>
+
+                    <Rating value={rating} />
+                </div>
+
+                <div className="mt-6 flex flex-wrap gap-3">
+
+                    <Button>
+                        Comprar
+                    </Button>
+
+                    <Link
+                        to={`/books/${id}`}
+                        className="inline-flex items-center justify-center rounded-xl border border-violet-500 px-5 py-2 font-semibold text-violet-300 transition duration-300 hover:bg-violet-500/10"
+                    >
+                        Ver detalhes
+                    </Link>
+
+                </div>
+
+            </Card>
 
         </article>
     );

@@ -1,7 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-
+import BookDetails from "../pages/BookDetails";
 import Layout from "../components/layout/Layout";
-
 import Home from "../pages/Home";
 import Blog from "../pages/Blog";
 import Store from "../pages/Store";
@@ -20,6 +19,7 @@ export default function AppRoutes() {
                     <Route path="/about" element={<About />} />
                     <Route path="/contact" element={<Contact />} />
                     <Route path="*" element={<NotFound />} />
+                    <Route path="/books/:id" element={<BookDetails />} />
                 </Routes>
             </Layout>
         </BrowserRouter>
