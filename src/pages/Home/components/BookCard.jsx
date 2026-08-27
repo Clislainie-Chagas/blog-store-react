@@ -1,8 +1,8 @@
 import Rating from "../../../components/ui/Rating";
-import Button from "../../../components/ui/Button";
 import Badge from "../../../components/ui/Badge";
 import Card from "../../../components/ui/Card";
 import { Link } from "react-router-dom";
+import { Heart } from "lucide-react";
 
 export default function BookCard({
     id,
@@ -12,6 +12,9 @@ export default function BookCard({
     price,
     rating,
     cover,
+    amazonUrl,
+    isFavorite,
+    onFavorite,
 }) {
     return (
         <article className="transition duration-300 hover:scale-[1.02]">
@@ -50,6 +53,45 @@ export default function BookCard({
                     </div>
 
                 </div>
+                <button
+                    type="button"
+                    onClick={onFavorite}
+                    aria-label={
+                        isFavorite
+                            ? `Remover ${title} dos favoritos`
+                            : `Adicionar ${title} aos favoritos`
+                    }
+                    className="
+                        absolute
+                        right-3
+                        top-3
+                        z-10
+                        flex
+                        h-10
+                        w-10
+                        items-center
+                        justify-center
+                        rounded-full
+                        border
+                        border-white/10
+                        bg-black/50
+                        text-white
+                        backdrop-blur-md
+                        transition
+                        hover:scale-110
+                        hover:text-pink-400
+                    "
+                >
+                    <Heart
+                        size={20}
+                        fill={isFavorite ? "currentColor" : "none"}
+                        className={
+                            isFavorite
+                                ? "text-pink-400"
+                                : "text-white"
+                        }
+                    />
+                </button>
 
                 <Badge>
                     {category}
@@ -73,9 +115,14 @@ export default function BookCard({
 
                 <div className="mt-6 flex flex-wrap gap-3">
 
-                    <Button>
+                    <a
+                        href={amazonUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center justify-center rounded-xl bg-violet-600 px-5 py-2 font-semibold text-white transition hover:bg-violet-500"
+                    >
                         Comprar
-                    </Button>
+                    </a>
 
                     <Link
                         to={`/books/${id}`}

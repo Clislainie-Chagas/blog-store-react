@@ -1,7 +1,8 @@
-import { NavLink } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import SearchBar from "../ui/SearchBar";
+import { Heart } from "lucide-react";
 
-export default function Navbar() {
+export default function Navbar({ favorites = [] }) {
     return (
         <header className="sticky top-0 z-50 border-b border-white/10 bg-slate-950/70 backdrop-blur-xl">
             <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
@@ -43,6 +44,36 @@ export default function Navbar() {
                     <NavLink to="/contact">
                         Contato
                     </NavLink>
+                    <Link
+                        to="/favorites"
+                        className="relative flex items-center justify-center text-slate-300 transition hover:text-pink-400"
+                        aria-label={`Favoritos: ${favorites.length}`}
+                    >
+                        <Heart size={22} />
+
+                        {favorites.length > 0 && (
+                            <span
+                                className="
+                absolute
+                -right-3
+                -top-3
+                flex
+                h-5
+                min-w-5
+                items-center
+                justify-center
+                rounded-full
+                bg-violet-500
+                px-1
+                text-xs
+                font-bold
+                text-white
+            "
+                            >
+                                {favorites.length}
+                            </span>
+                        )}
+                    </Link>
 
                 </div>
 

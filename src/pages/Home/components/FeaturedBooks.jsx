@@ -2,7 +2,7 @@ import BookCard from "./BookCard";
 import useBooks from "../../../hooks/useBooks";
 import SectionTitle from "../../../components/ui/SectionTitle";
 
-export default function FeaturedBooks({ search }) {
+export default function FeaturedBooks({ search, favorites, onFavorite, }) {
 
     const books = useBooks();
 
@@ -41,18 +41,27 @@ export default function FeaturedBooks({ search }) {
 
                 <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
 
-                    {filteredBooks.map((book) => (
-                        <BookCard
-                            key={book.id}
-                            id={book.id}
-                            title={book.title}
-                            author={book.author}
-                            category={book.category}
-                            price={book.price}
-                            rating={book.rating}
-                            cover={book.cover}
-                        />
-                    ))}
+                    {filteredBooks.map((book) => {
+                        const isFavorite = favorites.some(
+                            (favorite) => favorite.id === book.id
+                        );
+
+                        return (
+                            <BookCard
+                                key={book.id}
+                                id={book.id}
+                                title={book.title}
+                                author={book.author}
+                                category={book.category}
+                                price={book.price}
+                                rating={book.rating}
+                                cover={book.cover}
+                                isFavorite={isFavorite}
+                                onFavorite={() => onFavorite(book)}
+                                amazonUrl={book.amazonUrl}
+                            />
+                        );
+                    })}
 
                 </div>
 

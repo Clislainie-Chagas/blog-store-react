@@ -8,33 +8,36 @@ const books = [
     title: "Entre Universos Paralelos",
     author: "Clis Chagas",
     category: "Romance",
-    price: 79.90,
+    price: 19.90,
     rating: 5,
     cover: universoParalelo,
     description:
       "Uma jornada entre mundos, segredos e histórias esquecidas, onde cada descoberta pode mudar para sempre o destino daqueles que ousam atravessar os limites do conhecido.",
+    amazonUrl: "https://a.co/d/06HyYrDP",
   },
   {
     id: 2,
     title: "Amizade Colorida",
     author: "Clis Chagas",
     category: "Conto Erótico",
-    price: 19.90,
+    price: 4.99,
     rating: 4,
     cover: amizadeColorida,
     description:
       "Uma jornada entre mundos, segredos e histórias esquecidas, onde cada descoberta pode mudar para sempre o destino daqueles que ousam atravessar os limites do conhecido.",
+    amazonUrl: "https://a.co/d/035MdODh",
   },
   {
     id: 3,
     title: "Envelhecimento Precoce",
     author: "Clis Chagas",
-    category: "Ficção Científica",
-    price: 69.90,
+    category: "Autoajuda",
+    price: 3.99,
     rating: 5,
     cover: envelhecimentoPrecoce,
     description:
       "Uma jornada entre mundos, segredos e histórias esquecidas, onde cada descoberta pode mudar para sempre o destino daqueles que ousam atravessar os limites do conhecido.",
+    amazonUrl: "https://www.amazon.com.br/dp/B0CW18NVS1",
   }
 ];
 
