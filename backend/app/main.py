@@ -2,9 +2,10 @@ from fastapi import FastAPI
 
 from app.database import Base, engine
 from app import models
-from app.product_routes import router as product_router
 from fastapi.middleware.cors import CORSMiddleware
+from app.product_routes import router as product_router
 from app.admin_routes import router as admin_router
+from app.order_routes import router as order_router
 
 app = FastAPI()
 
@@ -21,6 +22,7 @@ Base.metadata.create_all(bind=engine)
 
 app.include_router(product_router)
 app.include_router(admin_router)
+app.include_router(order_router)
 
 @app.get("/")
 def home():

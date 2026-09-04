@@ -14,6 +14,8 @@ import Checkout from "../pages/Checkout";
 import AdminProducts from "../pages/AdminProducts";
 import AdminLogin from "../pages/AdminLogin";
 import ProtectedRoute from "../components/ProtectedRoute";
+import AdminOrders from "../pages/AdminOrders";
+import AdminLayout from "../components/layout/AdminLayout";
 
 export default function AppRoutes({
     favorites,
@@ -57,9 +59,20 @@ export default function AppRoutes({
                     <Route path="/admin/login" element={<AdminLogin />} />
                     <Route path="/admin/products" element={
                         <ProtectedRoute>
-                            <AdminProducts />
+                            <AdminLayout>
+                                <AdminProducts />
+                            </AdminLayout>
                         </ProtectedRoute>
                     } />
+
+                    <Route
+                        path="/admin/orders"
+                        element={
+                            <ProtectedRoute>
+                                <AdminOrders />
+                            </ProtectedRoute>
+                        }
+                    />
 
                     <Route path="*" element={<NotFound />} />
 

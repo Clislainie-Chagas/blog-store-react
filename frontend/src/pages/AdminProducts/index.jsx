@@ -81,6 +81,12 @@ export default function AdminProducts() {
             body: JSON.stringify(productData),
         })
             .then((response) => {
+                if (response.status === 401 || response.status === 403) {
+                    localStorage.removeItem("admin_token");
+                    window.location.href = "/admin/login";
+                    return;
+                }
+
                 if (!response.ok) {
                     throw new Error(
                         isEditing
@@ -91,6 +97,7 @@ export default function AdminProducts() {
 
                 return response.json();
             })
+
             .then((savedProduct) => {
                 if (isEditing) {
                     setProducts((currentProducts) =>
@@ -169,6 +176,12 @@ export default function AdminProducts() {
             },
         })
             .then((response) => {
+                if (response.status === 401 || response.status === 403) {
+                    localStorage.removeItem("admin_token");
+                    window.location.href = "/admin/login";
+                    return;
+                }
+
                 if (!response.ok) {
                     throw new Error("Erro ao excluir produto");
                 }
