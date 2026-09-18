@@ -72,6 +72,14 @@ def create_order(
     new_order = Order(
         customer_name=order_data.customer_name,
         customer_email=order_data.customer_email,
+        customer_phone=order_data.customer_phone,
+
+        shipping_cep=order_data.shipping_cep,
+        shipping_state=order_data.shipping_state,
+        shipping_city=order_data.shipping_city,
+        shipping_street=order_data.shipping_street,
+        shipping_number=order_data.shipping_number,
+
         total=total
     )
 

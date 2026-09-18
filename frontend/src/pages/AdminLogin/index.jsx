@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 function AdminLogin() {
     const navigate = useNavigate();
 
@@ -17,7 +19,7 @@ function AdminLogin() {
 
         try {
             const response = await fetch(
-                "http://127.0.0.1:8000/admin/login",
+                `${API_URL}/admin/login`,
                 {
                     method: "POST",
                     headers: {
@@ -42,8 +44,10 @@ function AdminLogin() {
             );
 
             navigate("/admin/products");
+
         } catch (error) {
             setError(error.message);
+
         } finally {
             setLoading(false);
         }
@@ -52,6 +56,7 @@ function AdminLogin() {
     return (
         <main className="min-h-screen flex items-center justify-center px-4">
             <div className="w-full max-w-md bg-slate-900 p-8 rounded-xl">
+
                 <h1 className="text-2xl font-bold text-white mb-6">
                     Login Administrativo
                 </h1>
@@ -98,6 +103,7 @@ function AdminLogin() {
                             : "Entrar"}
                     </button>
                 </form>
+
             </div>
         </main>
     );

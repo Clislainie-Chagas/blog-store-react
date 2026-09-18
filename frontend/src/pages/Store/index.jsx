@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import ProductCard from "./components/ProductCard";
 
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default function Store({
     onAddToCart,
@@ -10,7 +11,7 @@ export default function Store({
     const [error, setError] = useState("");
 
     useEffect(() => {
-        fetch("http://127.0.0.1:8000/products/")
+        fetch(`${API_URL}/products/`)
             .then((response) => {
                 if (!response.ok) {
                     throw new Error("Erro ao buscar produtos");

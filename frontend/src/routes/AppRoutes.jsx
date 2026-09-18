@@ -16,6 +16,11 @@ import AdminLogin from "../pages/AdminLogin";
 import ProtectedRoute from "../components/ProtectedRoute";
 import AdminOrders from "../pages/AdminOrders";
 import AdminLayout from "../components/layout/AdminLayout";
+import Payment from "../pages/Payment";
+import PaymentSuccess from "../pages/PaymentSuccess";
+import PaymentFailure from "../pages/PaymentFailure";
+import PaymentPending from "../pages/PaymentPending";
+
 
 export default function AppRoutes({
     favorites,
@@ -56,6 +61,11 @@ export default function AppRoutes({
                     />} />
 
                     <Route path="/checkout" element={<Checkout cart={cart} />} />
+                    <Route path="/payment/:orderId" element={<Payment />} />
+                    <Route path="/payment/success/:orderId" element={<PaymentSuccess />} />
+                    <Route path="/payment/failure/:orderId" element={<PaymentFailure />} />
+                    <Route path="/payment/pending/:orderId" element={<PaymentPending />} />
+
                     <Route path="/admin/login" element={<AdminLogin />} />
                     <Route path="/admin/products" element={
                         <ProtectedRoute>
@@ -69,7 +79,9 @@ export default function AppRoutes({
                         path="/admin/orders"
                         element={
                             <ProtectedRoute>
-                                <AdminOrders />
+                                <AdminLayout>
+                                    <AdminOrders />
+                                </AdminLayout>
                             </ProtectedRoute>
                         }
                     />

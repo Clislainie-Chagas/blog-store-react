@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 export default function AdminProducts() {
     const [formData, setFormData] = useState({
         name: "",
@@ -15,7 +17,7 @@ export default function AdminProducts() {
     const [editingProductId, setEditingProductId] = useState(null);
 
     useEffect(() => {
-        fetch("http://127.0.0.1:8000/products/")
+        fetch(`${API_URL}/products/`)
             .then((response) => {
                 if (!response.ok) {
                     throw new Error("Erro ao buscar produtos");
@@ -67,8 +69,8 @@ export default function AdminProducts() {
         const isEditing = editingProductId !== null;
 
         const url = isEditing
-            ? `http://127.0.0.1:8000/products/${editingProductId}`
-            : "http://127.0.0.1:8000/products/";
+            ? `${API_URL}/products/${editingProductId}`
+            : `${API_URL}/products/`;
 
         const method = isEditing ? "PUT" : "POST";
 
@@ -169,7 +171,7 @@ export default function AdminProducts() {
             return;
         }
 
-        fetch(`http://127.0.0.1:8000/products/${productId}`, {
+        fetch(`${API_URL}/products/${productId}`, {
             method: "DELETE",
             headers: {
                 Authorization: `Bearer ${token}`,

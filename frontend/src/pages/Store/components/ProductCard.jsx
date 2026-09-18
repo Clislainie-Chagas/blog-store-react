@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useState } from "react";
 export default function ProductCard({
     id,
     name,
@@ -9,6 +10,28 @@ export default function ProductCard({
     stock,
     onAddToCart,
 }) {
+    const [cartMessage, setCartMessage] = useState(false);
+
+    // function handleAddToCart() {
+    //     onAddToCart({ id, name, price, image });
+    //     setCartMessage(true);
+
+    //     setTimeout(() => {
+    //         setCartMessage(false);
+    //     }, 3000);
+    // }
+    // const [cartMessage, setCartMessage] = useState(false);
+
+    function handleAddToCart() {
+        onAddToCart();
+
+        setCartMessage(true);
+
+        setTimeout(() => {
+            setCartMessage(false);
+        }, 3000);
+    }
+
     return (
         <article className="group overflow-hidden rounded-2xl border border-white/10 bg-white/5 transition hover:-translate-y-1 hover:border-violet-400/30">
 
@@ -62,7 +85,7 @@ export default function ProductCard({
 
                 <button
                     type="button"
-                    onClick={onAddToCart}
+                    onClick={handleAddToCart}
                     disabled={stock === 0}
                     className="
         mt-6
@@ -84,6 +107,21 @@ export default function ProductCard({
                         ? "Adicionar ao carrinho"
                         : "Produto esgotado"}
                 </button>
+
+                {cartMessage && (
+                    <div className="mt-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4">
+                        <p className="text-sm font-medium text-emerald-300">
+                            Produto adicionado ao carrinho com sucesso!
+                        </p>
+
+                        <Link
+                            to="/cart"
+                            className="mt-3 inline-block rounded-lg bg-violet-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-violet-500"
+                        >
+                            Ver carrinho
+                        </Link>
+                    </div>
+                )}
 
             </div>
 

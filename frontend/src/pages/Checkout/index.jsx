@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 export default function Checkout({ cart = [] }) {
     const [errors, setErrors] = useState({});
     const [formData, setFormData] = useState({
@@ -17,10 +19,12 @@ export default function Checkout({ cart = [] }) {
     const [shipping,] = useState(null);
     const [isLoadingCep, setIsLoadingCep] = useState(false);
     const subtotal = cart.reduce(
-        (total, item) => total + item.price * item.quantity,
-        0
-    );
+        (total, item) => total + item.price * item.quantity, 0);
     const total = subtotal + (shipping ?? 0);
+    const [orderMessage, setOrderMessage] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [createdOrder, setCreatedOrder] = useState(null);
+
 
     const formatCep = (value) => {
         const numbers = value.replace(/\D/g, "").slice(0, 8);
@@ -168,7 +172,9 @@ export default function Checkout({ cart = [] }) {
 
         return Object.keys(newErrors).length === 0;
     };
-    const handleContinue = () => {
+    const handleContinue = async () => {
+
+
         if (cart.length === 0) {
             return;
         }
@@ -182,14 +188,66 @@ export default function Checkout({ cart = [] }) {
         if (!isValid) {
             return;
         }
+        if (isSubmitting) {
+            return;
+        }
 
-        console.log("Checkout pronto:", {
-            customer: formData,
-            products: cart,
-            subtotal,
-            shipping,
-            total,
-        });
+        setIsSubmitting(true);
+        setOrderMessage("");
+
+        const orderData = {
+            customer_name: formData.name,
+            customer_email: formData.email,
+            customer_phone: formData.phone,
+
+            shipping_cep: formData.cep,
+            shipping_state: formData.state,
+            shipping_city: formData.city,
+            shipping_street: formData.street,
+            shipping_number: formData.number,
+
+            items: cart.map((item) => ({
+                product_id: item.id,
+                quantity: item.quantity,
+            })),
+        };
+
+        try {
+            const response = await fetch(
+                `${API_URL}/orders`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(orderData),
+                }
+            );
+
+            if (!response.ok) {
+                const errorData = await response.json();
+
+                throw new Error(
+                    errorData.detail || "Não foi possível criar o pedido"
+                );
+            }
+
+            const order = await response.json();
+
+            setCreatedOrder(order);
+
+            setOrderMessage(
+                `Pedido #${order.id} criado com sucesso!`
+            );
+
+            console.log("Pedido criado:", createdOrder);
+        } catch (error) {
+            console.error("Erro ao criar pedido:", error.message);
+            setOrderMessage(error.message);
+        }
+        finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -490,10 +548,21 @@ export default function Checkout({ cart = [] }) {
                             </div>
                         </div>
 
+                        {orderMessage && (
+                            <p className="mb-4 rounded-xl border border-white/10 bg-white/5 p-3 text-sm text-slate-200">
+                                {orderMessage}
+                            </p>
+                        )}
+
                         <button
                             type="button"
                             onClick={handleContinue}
-                            disabled={cart.length === 0 || isLoadingCep}
+                            disabled={
+                                cart.length === 0 ||
+                                isLoadingCep ||
+                                isSubmitting ||
+                                createdOrder !== null
+                            }
                             className="
         mt-6
         w-full
@@ -509,10 +578,23 @@ export default function Checkout({ cart = [] }) {
         disabled:text-slate-400
     "
                         >
-                            {isLoadingCep
-                                ? "Aguarde..."
-                                : "Continuar para pagamento"}
+                            {isSubmitting
+                                ? "Criando pedido..."
+                                : createdOrder
+                                    ? `Pedido #${createdOrder.id} criado`
+                                    : isLoadingCep
+                                        ? "Aguarde..."
+                                        : "Continuar para pagamento"}
                         </button>
+
+                        {createdOrder && (
+                            <Link
+                                to={`/payment/${createdOrder.id}`}
+                                className="mt-4 inline-flex w-full items-center justify-center rounded-xl bg-violet-600 px-5 py-3 font-semibold text-white transition hover:bg-violet-500"
+                            >
+                                Ir para pagamento
+                            </Link>
+                        )}
 
                     </aside>
 

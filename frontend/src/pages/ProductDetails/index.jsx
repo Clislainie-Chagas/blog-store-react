@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { ArrowLeft, ShoppingCart } from "lucide-react";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 export default function ProductDetails({
     onAddToCart,
 }) {
@@ -10,9 +12,10 @@ export default function ProductDetails({
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [cartMessage, setCartMessage] = useState(false);
 
     useEffect(() => {
-        fetch(`http://127.0.0.1:8000/products/${id}`)
+        fetch(`${API_URL}/products/${id}`)
             .then((response) => {
                 if (!response.ok) {
                     throw new Error("Produto não encontrado");
@@ -30,6 +33,18 @@ export default function ProductDetails({
                 setLoading(false);
             });
     }, [id]);
+
+    function handleAddToCart() {
+        console.log("Clique em adicionar:", product);
+
+        setCartMessage(true);
+
+        onAddToCart(product);
+
+        setTimeout(() => {
+            setCartMessage(false);
+        }, 3000);
+    }
 
     if (loading) {
         return (
@@ -111,8 +126,8 @@ export default function ProductDetails({
 
                         <p
                             className={`mt-6 font-medium ${product.stock > 0
-                                    ? "text-emerald-400"
-                                    : "text-red-400"
+                                ? "text-emerald-400"
+                                : "text-red-400"
                                 }`}
                         >
                             {product.stock > 0
@@ -122,25 +137,25 @@ export default function ProductDetails({
 
                         <button
                             type="button"
-                            onClick={() => onAddToCart(product)}
+                            onClick={handleAddToCart}
                             disabled={product.stock === 0}
                             className="
-                                mt-10
-                                inline-flex
-                                w-fit
-                                items-center
-                                gap-2
-                                rounded-xl
-                                bg-violet-600
-                                px-7
-                                py-3
-                                font-semibold
-                                transition
-                                hover:bg-violet-500
-                                disabled:cursor-not-allowed
-                                disabled:bg-slate-700
-                                disabled:text-slate-400
-                            "
+        mt-10
+        inline-flex
+        w-fit
+        items-center
+        gap-2
+        rounded-xl
+        bg-violet-600
+        px-7
+        py-3
+        font-semibold
+        transition
+        hover:bg-violet-500
+        disabled:cursor-not-allowed
+        disabled:bg-slate-700
+        disabled:text-slate-400
+    "
                         >
                             <ShoppingCart size={19} />
 
@@ -148,6 +163,21 @@ export default function ProductDetails({
                                 ? "Adicionar ao carrinho"
                                 : "Produto esgotado"}
                         </button>
+
+                        {cartMessage && (
+                            <div className="mt-4 w-fit rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4">
+                                <p className="text-sm font-medium text-emerald-300">
+                                    Produto adicionado ao carrinho com sucesso!
+                                </p>
+
+                                <Link
+                                    to="/cart"
+                                    className="mt-3 inline-block rounded-lg bg-violet-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-violet-500"
+                                >
+                                    Ver carrinho
+                                </Link>
+                            </div>
+                        )}
 
                     </div>
 

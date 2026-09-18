@@ -47,6 +47,14 @@ class OrderItemCreate(BaseModel):
 class OrderCreate(BaseModel):
     customer_name: str
     customer_email: str
+    customer_phone: str | None = None
+
+    shipping_cep: str | None = None
+    shipping_state: str | None = None
+    shipping_city: str | None = None
+    shipping_street: str | None = None
+    shipping_number: str | None = None
+
     items: list[OrderItemCreate]
 
 
@@ -63,8 +71,22 @@ class OrderResponse(BaseModel):
     id: int
     customer_name: str
     customer_email: str
+    customer_phone: str | None = None
+
+    shipping_cep: str | None = None
+    shipping_state: str | None = None
+    shipping_city: str | None = None
+    shipping_street: str | None = None
+    shipping_number: str | None = None
+
     total: Decimal
     status: str
+
+    payment_status: str
+    payment_method: str | None = None
+    payment_provider: str | None = None
+    payment_reference: str | None = None
+    
     created_at: datetime
     items: list[OrderItemResponse]
 
