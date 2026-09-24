@@ -21,6 +21,7 @@ def get_db():
     finally:
         db.close()
 
+
 @router.post("/", response_model=ProductResponse)
 def create_product(
     product: ProductCreate,
@@ -30,6 +31,7 @@ def create_product(
     new_product = Product(
         name=product.name,
         category=product.category,
+        product_type=product.product_type,
         price=product.price,
         image=product.image,
         description=product.description,
@@ -42,11 +44,13 @@ def create_product(
 
     return new_product
 
+
 @router.get("/", response_model=list[ProductResponse])
 def list_products(db: Session = Depends(get_db)):
     products = db.query(Product).all()
 
     return products
+
 
 @router.get("/{product_id}", response_model=ProductResponse)
 def get_product(
@@ -64,6 +68,7 @@ def get_product(
         )
 
     return product
+
 
 @router.put("/{product_id}", response_model=ProductResponse)
 def update_product(
@@ -84,6 +89,7 @@ def update_product(
 
     product.name = product_data.name
     product.category = product_data.category
+    product.product_type = product_data.product_type
     product.price = product_data.price
     product.image = product_data.image
     product.description = product_data.description
@@ -93,6 +99,7 @@ def update_product(
     db.refresh(product)
 
     return product
+
 
 @router.delete("/{product_id}")
 def delete_product(
@@ -116,4 +123,3 @@ def delete_product(
     return {
         "message": "Produto excluído com sucesso"
     }
-

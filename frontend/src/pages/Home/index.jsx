@@ -1,10 +1,13 @@
 import Hero from "./components/Hero";
 import FeaturedBooks from "./components/FeaturedBooks";
+import FeaturedProducts from "./components/FeaturedProducts";
+import FeaturedWebsites from "./components/FeaturedWebsites";
 import { useState } from "react";
 
 export default function Home({
     favorites,
     onFavorite,
+    onAddToCart,
 }) {
     const [search, setSearch] = useState("");
 
@@ -19,6 +22,14 @@ export default function Home({
                 search={search}
                 favorites={favorites}
                 onFavorite={onFavorite}
+            />
+
+            <FeaturedProducts
+                onAddToCart={onAddToCart}
+            />
+
+            <FeaturedWebsites
+                onAddToCart={onAddToCart}
             />
         </>
     );

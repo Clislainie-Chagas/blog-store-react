@@ -44,7 +44,7 @@ function AdminOrders() {
         <main className="min-h-screen px-6 py-10">
             <div className="max-w-6xl mx-auto">
                 <h1 className="text-3xl font-bold text-white mb-8">
-                    Pedidos - TESTE NOVO
+                    Pedidos
                 </h1>
 
                 {error && (
@@ -104,12 +104,36 @@ function AdminOrders() {
                                 </div>
 
                                 <div className="text-right">
+                                    <span
+                                        className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${order.payment_status === "paid"
+                                            ? "bg-green-500/20 text-green-300"
+                                            : order.payment_status === "pending"
+                                                ? "bg-yellow-500/20 text-yellow-300"
+                                                : "bg-red-500/20 text-red-300"
+                                            }`}
+                                    >
+                                        {order.payment_status === "paid"
+                                            ? "PAGO"
+                                            : order.payment_status === "pending"
+                                                ? "PENDENTE"
+                                                : order.payment_status?.toUpperCase()}
+                                    </span>
+
+                                    <p className="mt-3 text-xl font-bold text-white">
+                                        R$ {Number(order.total).toFixed(2).replace(".", ",")}
+                                    </p>
+
+                                    {order.created_at && (
+                                        <p className="mt-2 text-xs text-slate-400">
+                                            {new Date(order.created_at).toLocaleString("pt-BR")}
+                                        </p>
+                                    )}
+
                                     {order.payment_method && (
                                         <p className="mt-2 text-xs text-slate-400">
                                             Método: {order.payment_method}
                                         </p>
                                     )}
-
                                 </div>
 
                             </div>
@@ -118,13 +142,34 @@ function AdminOrders() {
                                 {order.items.map((item) => (
                                     <div
                                         key={item.id}
-                                        className="text-slate-300"
+                                        className="flex flex-wrap items-center justify-between gap-3 py-2 text-slate-300"
                                     >
-                                        Produto #{item.product_id}
-                                        {" — "}
-                                        Quantidade: {item.quantity}
-                                        {" — "}
-                                        R$ {Number(item.unit_price).toFixed(2)}
+                                        <div>
+                                            <p className="font-medium text-white">
+                                                {item.product?.name || `Produto #${item.product_id}`}
+                                            </p>
+
+                                            <p className="text-sm text-slate-400">
+                                                Quantidade: {item.quantity}
+                                            </p>
+                                        </div>
+
+                                        <div className="text-right">
+                                            <p>
+                                                R$ {Number(item.unit_price)
+                                                    .toFixed(2)
+                                                    .replace(".", ",")} cada
+                                            </p>
+
+                                            <p className="text-sm font-semibold text-violet-300">
+                                                Subtotal: R${" "}
+                                                {(
+                                                    Number(item.unit_price) * item.quantity
+                                                )
+                                                    .toFixed(2)
+                                                    .replace(".", ",")}
+                                            </p>
+                                        </div>
                                     </div>
                                 ))}
                             </div>

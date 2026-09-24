@@ -6,6 +6,7 @@ export default function AdminProducts() {
     const [formData, setFormData] = useState({
         name: "",
         category: "",
+        product_type: "physical",
         price: "",
         image: "",
         description: "",
@@ -56,6 +57,19 @@ export default function AdminProducts() {
         }));
     }
 
+    function resetForm() {
+        setFormData({
+            name: "",
+            category: "",
+            product_type: "physical",
+            price: "",
+            image: "",
+            description: "",
+            stock: "",
+        });
+
+        setEditingProductId(null);
+    }
 
     function handleSubmit(event) {
         event.preventDefault();
@@ -75,7 +89,7 @@ export default function AdminProducts() {
         const method = isEditing ? "PUT" : "POST";
 
         fetch(url, {
-            method: method,
+            method,
             headers: {
                 "Content-Type": "application/json",
                 Authorization: `Bearer ${token}`,
@@ -99,8 +113,11 @@ export default function AdminProducts() {
 
                 return response.json();
             })
-
             .then((savedProduct) => {
+                if (!savedProduct) {
+                    return;
+                }
+
                 if (isEditing) {
                     setProducts((currentProducts) =>
                         currentProducts.map((product) =>
@@ -120,16 +137,7 @@ export default function AdminProducts() {
                     setMessage("Produto cadastrado com sucesso!");
                 }
 
-                setFormData({
-                    name: "",
-                    category: "",
-                    price: "",
-                    image: "",
-                    description: "",
-                    stock: "",
-                });
-
-                setEditingProductId(null);
+                resetForm();
             })
             .catch((error) => {
                 console.error(error);
@@ -143,6 +151,7 @@ export default function AdminProducts() {
     }
 
     const token = localStorage.getItem("admin_token");
+
     function handleEdit(product) {
         setMessage("");
 
@@ -151,6 +160,7 @@ export default function AdminProducts() {
         setFormData({
             name: product.name,
             category: product.category,
+            product_type: product.product_type || "physical",
             price: product.price,
             image: product.image || "",
             description: product.description || "",
@@ -162,6 +172,7 @@ export default function AdminProducts() {
             behavior: "smooth",
         });
     }
+
     function handleDelete(productId) {
         const confirmed = window.confirm(
             "Tem certeza que deseja excluir este produto?"
@@ -217,7 +228,7 @@ export default function AdminProducts() {
                 </h1>
 
                 <p className="mt-4 text-slate-400">
-                    Cadastre novos produtos disponíveis na loja.
+                    Cadastre produtos da loja e modelos de sites prontos.
                 </p>
 
                 <form
@@ -243,6 +254,31 @@ export default function AdminProducts() {
                         required
                         className="w-full rounded-xl border border-white/10 bg-slate-900 px-4 py-3 outline-none focus:border-violet-500"
                     />
+
+                    <div>
+                        <label
+                            htmlFor="product_type"
+                            className="mb-2 block text-sm font-medium text-slate-300"
+                        >
+                            Tipo do produto
+                        </label>
+
+                        <select
+                            id="product_type"
+                            name="product_type"
+                            value={formData.product_type}
+                            onChange={handleChange}
+                            className="w-full rounded-xl border border-white/10 bg-slate-900 px-4 py-3 outline-none focus:border-violet-500"
+                        >
+                            <option value="physical">
+                                Produto da loja
+                            </option>
+
+                            <option value="website_template">
+                                Site pronto
+                            </option>
+                        </select>
+                    </div>
 
                     <input
                         type="number"
@@ -293,21 +329,12 @@ export default function AdminProducts() {
                             ? "Atualizar Produto"
                             : "Cadastrar Produto"}
                     </button>
+
                     {editingProductId !== null && (
                         <button
                             type="button"
                             onClick={() => {
-                                setEditingProductId(null);
-
-                                setFormData({
-                                    name: "",
-                                    category: "",
-                                    price: "",
-                                    image: "",
-                                    description: "",
-                                    stock: "",
-                                });
-
+                                resetForm();
                                 setMessage("");
                             }}
                             className="ml-3 rounded-xl border border-white/10 px-6 py-3 font-semibold text-slate-300 transition hover:bg-white/5"
@@ -348,11 +375,20 @@ export default function AdminProducts() {
                                     {product.category}
                                 </p>
 
+                                <p className="mt-2 text-xs font-semibold uppercase tracking-wider text-violet-300">
+                                    {product.product_type === "website_template"
+                                        ? "Site pronto"
+                                        : "Produto da loja"}
+                                </p>
+
                                 <p className="mt-3 font-semibold text-violet-300">
-                                    {Number(product.price).toLocaleString("pt-BR", {
-                                        style: "currency",
-                                        currency: "BRL",
-                                    })}
+                                    {Number(product.price).toLocaleString(
+                                        "pt-BR",
+                                        {
+                                            style: "currency",
+                                            currency: "BRL",
+                                        }
+                                    )}
                                 </p>
 
                                 <p className="mt-2 text-sm text-slate-400">
@@ -374,12 +410,10 @@ export default function AdminProducts() {
                                 >
                                     Excluir
                                 </button>
-
                             </div>
                         ))}
                     </div>
                 </div>
-
             </section>
         </main>
     );

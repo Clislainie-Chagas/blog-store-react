@@ -44,6 +44,10 @@ export default function Navbar({
                         Loja
                     </NavLink>
 
+                    <NavLink to="/sites">
+                        Sites Prontos
+                    </NavLink>
+
                     <NavLink to="/about">
                         Sobre
                     </NavLink>

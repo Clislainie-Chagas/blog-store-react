@@ -1,8 +1,17 @@
 from datetime import datetime, timezone
+from sqlalchemy import (
+    Boolean,
+    Column,
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    Numeric,
+    String,
+    Text,
+)
 
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, Numeric, String, Text
 from sqlalchemy.orm import relationship
-
 from app.database import Base
 
 class Order(Base):
@@ -74,12 +83,15 @@ class OrderItem(Base):
         back_populates="items"
     )
 
+    product = relationship("Product")
+
 class Product(Base):
     __tablename__ = "products"
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(150), nullable=False)
     category = Column(String(100), nullable=False)
+    product_type = Column(String(50), nullable=False, default="physical")
     price = Column(Numeric(10, 2), nullable=False)
     image = Column(String(255), nullable=True)
     description = Column(Text, nullable=True)
@@ -93,3 +105,20 @@ class Admin(Base):
     email = Column(String(255), unique=True, nullable=False, index=True)
     password_hash = Column(String(255), nullable=False)
 
+class ContactMessage(Base):
+    __tablename__ = "contact_messages"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    name = Column(String(120), nullable=False)
+    email = Column(String(255), nullable=False)
+    subject = Column(String(200), nullable=False)
+    message = Column(Text, nullable=False)
+
+    is_read = Column(Boolean, default=False, nullable=False)
+
+    created_at = Column(
+        DateTime,
+        default=datetime.utcnow,
+        nullable=False
+    )

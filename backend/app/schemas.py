@@ -6,6 +6,7 @@ from pydantic import BaseModel, ConfigDict
 class ProductBase(BaseModel):
     name: str
     category: str
+    product_type: str = "physical"
     price: Decimal
     image: str | None = None
     description: str | None = None
@@ -58,14 +59,22 @@ class OrderCreate(BaseModel):
     items: list[OrderItemCreate]
 
 
+class OrderItemProductResponse(BaseModel):
+    id: int
+    name: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class OrderItemResponse(BaseModel):
     id: int
     product_id: int
     quantity: int
     unit_price: Decimal
+    product: OrderItemProductResponse
 
     model_config = ConfigDict(from_attributes=True)
-
+    
 
 class OrderResponse(BaseModel):
     id: int

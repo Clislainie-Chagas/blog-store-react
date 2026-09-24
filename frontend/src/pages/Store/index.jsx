@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+
 import ProductCard from "./components/ProductCard";
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -9,6 +10,7 @@ export default function Store({
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [selectedCategory, setSelectedCategory] = useState("Todos");
 
     useEffect(() => {
         fetch(`${API_URL}/products/`)
@@ -30,29 +32,31 @@ export default function Store({
                 setLoading(false);
             });
     }, []);
-    // Categoria selecionada
-    const [selectedCategory, setSelectedCategory] = useState("Todos");
 
-    // Cria a lista de categorias sem repetir
+    // Somente produtos físicos pertencem à Loja
+    const physicalProducts = products.filter(
+        (product) => product.product_type === "physical"
+    );
+
+    // Categorias somente dos produtos físicos
     const categories = [
         "Todos",
         ...new Set(
-            products.map((product) => product.category)
+            physicalProducts.map((product) => product.category)
         ),
     ];
 
-    // Filtra os produtos
+    // Filtra os produtos físicos pela categoria selecionada
     const filteredProducts =
         selectedCategory === "Todos"
-            ? products
-            : products.filter(
+            ? physicalProducts
+            : physicalProducts.filter(
                 (product) =>
                     product.category === selectedCategory
             );
 
     return (
         <main className="min-h-screen px-6 py-16 text-white">
-
             <section className="mx-auto max-w-7xl">
 
                 {/* CABEÇALHO */}
@@ -71,61 +75,70 @@ export default function Store({
                     </p>
                 </div>
 
+                {/* CARREGAMENTO */}
                 {loading && (
                     <p className="mb-10 text-slate-400">
                         Carregando produtos...
                     </p>
                 )}
 
+                {/* ERRO */}
                 {error && (
                     <p className="mb-10 text-red-400">
                         {error}
                     </p>
                 )}
 
-                {/* FILTROS */}
                 {!loading && !error && (
-                    <div className="mb-10 flex flex-wrap gap-3">
-                        {categories.map((category) => (
-                            <button
-                                key={category}
-                                type="button"
-                                onClick={() =>
-                                    setSelectedCategory(category)
-                                }
-                                className={`rounded-full px-5 py-2 text-sm font-medium transition ${selectedCategory === category
-                                    ? "bg-violet-600 text-white"
-                                    : "border border-white/10 bg-white/5 text-slate-300 hover:bg-white/10"
-                                    }`}
-                            >
-                                {category}
-                            </button>
-                        ))}
-                    </div>
-                )}
+                    <>
+                        {/* FILTROS */}
+                        <div className="mb-10 flex flex-wrap gap-3">
+                            {categories.map((category) => (
+                                <button
+                                    key={category}
+                                    type="button"
+                                    onClick={() =>
+                                        setSelectedCategory(category)
+                                    }
+                                    className={`rounded-full px-5 py-2 text-sm font-medium transition ${selectedCategory === category
+                                            ? "bg-violet-600 text-white"
+                                            : "border border-white/10 bg-white/5 text-slate-300 hover:bg-white/10"
+                                        }`}
+                                >
+                                    {category}
+                                </button>
+                            ))}
+                        </div>
 
-                {/* PRODUTOS */}
-                {!loading && !error && (
-                    <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-                        {filteredProducts.map((product) => (
-                            <ProductCard
-                                key={product.id}
-                                id={product.id}
-                                name={product.name}
-                                category={product.category}
-                                price={product.price}
-                                image={product.image}
-                                description={product.description}
-                                stock={product.stock}
-                                onAddToCart={() =>
-                                    onAddToCart(product)
-                                }
-                            />
-                        ))}
-                    </div>
+                        {/* PRODUTOS FÍSICOS */}
+                        {filteredProducts.length > 0 ? (
+                            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+                                {filteredProducts.map((product) => (
+                                    <ProductCard
+                                        key={product.id}
+                                        id={product.id}
+                                        name={product.name}
+                                        category={product.category}
+                                        price={product.price}
+                                        image={product.image}
+                                        description={product.description}
+                                        stock={product.stock}
+                                        onAddToCart={() =>
+                                            onAddToCart(product)
+                                        }
+                                    />
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="rounded-2xl border border-white/10 bg-white/5 p-8">
+                                <p className="text-slate-400">
+                                    Nenhum produto disponível nesta categoria.
+                                </p>
+                            </div>
+                        )}
+                    </>
                 )}
             </section>
-
         </main>
     );
 }

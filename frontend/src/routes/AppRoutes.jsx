@@ -4,6 +4,9 @@ import Layout from "../components/layout/Layout";
 import Home from "../pages/Home";
 import Blog from "../pages/Blog";
 import Store from "../pages/Store";
+import Websites from "../pages/Websites";
+import WebsiteDetails from "../pages/WebsiteDetails";
+
 import About from "../pages/About";
 import Contact from "../pages/Contact";
 import NotFound from "../pages/NotFound";
@@ -20,6 +23,7 @@ import Payment from "../pages/Payment";
 import PaymentSuccess from "../pages/PaymentSuccess";
 import PaymentFailure from "../pages/PaymentFailure";
 import PaymentPending from "../pages/PaymentPending";
+import AdminMessages from "../pages/AdminMessages";
 
 
 export default function AppRoutes({
@@ -36,12 +40,26 @@ export default function AppRoutes({
             <Layout favorites={favorites} onFavorite={onFavorite} cart={cart}>
                 <Routes>
 
-                    <Route path="/" element={<Home
-                        favorites={favorites} onFavorite={onFavorite} />} />
+                    <Route
+                        path="/"
+                        element={
+                            <Home
+                                favorites={favorites}
+                                onFavorite={onFavorite}
+                                onAddToCart={onAddToCart}
+                            />
+                        }
+                    />
 
                     <Route path="/blog" element={<Blog />} />
+
                     <Route path="/store" element={<Store onAddToCart={onAddToCart} />} />
+
+                    <Route path="/sites" element={<Websites onAddToCart={onAddToCart} />} />
+                    <Route path="/sites/:id" element={<WebsiteDetails onAddToCart={onAddToCart} />} />
+
                     <Route path="/about" element={<About />} />
+
                     <Route path="/contact" element={<Contact />} />
 
                     <Route path="/books/:id" element={<BookDetails
@@ -81,6 +99,17 @@ export default function AppRoutes({
                             <ProtectedRoute>
                                 <AdminLayout>
                                     <AdminOrders />
+                                </AdminLayout>
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/admin/messages"
+                        element={
+                            <ProtectedRoute>
+                                <AdminLayout>
+                                    <AdminMessages />
                                 </AdminLayout>
                             </ProtectedRoute>
                         }
