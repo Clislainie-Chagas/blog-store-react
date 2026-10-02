@@ -40,6 +40,13 @@ function AdminLayout({ children }) {
                             Mensagens
                         </Link>
 
+                        <Link
+                            to="/admin/blog"
+                            className="text-sm text-slate-300 transition hover:text-white"
+                        >
+                            Blog
+                        </Link>
+
                         <button
                             type="button"
                             onClick={handleLogout}

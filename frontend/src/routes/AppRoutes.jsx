@@ -24,7 +24,8 @@ import PaymentSuccess from "../pages/PaymentSuccess";
 import PaymentFailure from "../pages/PaymentFailure";
 import PaymentPending from "../pages/PaymentPending";
 import AdminMessages from "../pages/AdminMessages";
-
+import AdminBlog from "../pages/AdminBlog";
+import BlogPost from "../pages/BlogPost";
 
 export default function AppRoutes({
     favorites,
@@ -52,6 +53,8 @@ export default function AppRoutes({
                     />
 
                     <Route path="/blog" element={<Blog />} />
+                    <Route path="/blog/:slug" element={<BlogPost />} />
+
 
                     <Route path="/store" element={<Store onAddToCart={onAddToCart} />} />
 
@@ -110,6 +113,17 @@ export default function AppRoutes({
                             <ProtectedRoute>
                                 <AdminLayout>
                                     <AdminMessages />
+                                </AdminLayout>
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/admin/blog"
+                        element={
+                            <ProtectedRoute>
+                                <AdminLayout>
+                                    <AdminBlog />
                                 </AdminLayout>
                             </ProtectedRoute>
                         }
