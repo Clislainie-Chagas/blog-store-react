@@ -29,14 +29,18 @@ def create_product(
     admin_id: int = Depends(get_current_admin)
 ):
     new_product = Product(
-        name=product.name,
-        category=product.category,
-        product_type=product.product_type,
-        price=product.price,
-        image=product.image,
-        description=product.description,
-        stock=product.stock
-    )
+    name=product.name,
+    category=product.category,
+    product_type=product.product_type,
+    price=product.price,
+    image=product.image,
+    description=product.description,
+    stock=product.stock,
+    weight=product.weight,
+    length=product.length,
+    width=product.width,
+    height=product.height,
+)
 
     db.add(new_product)
     db.commit()
@@ -94,6 +98,11 @@ def update_product(
     product.image = product_data.image
     product.description = product_data.description
     product.stock = product_data.stock
+
+    product.weight = product_data.weight
+    product.length = product_data.length
+    product.width = product_data.width
+    product.height = product_data.height
 
     db.commit()
     db.refresh(product)

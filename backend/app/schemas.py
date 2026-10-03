@@ -12,6 +12,10 @@ class ProductBase(BaseModel):
     description: str | None = None
     stock: int = 0
 
+    weight: Decimal | None = None
+    length: Decimal | None = None
+    width: Decimal | None = None
+    height: Decimal | None = None
 
 class ProductCreate(ProductBase):
     pass
@@ -55,6 +59,14 @@ class OrderCreate(BaseModel):
     shipping_city: str | None = None
     shipping_street: str | None = None
     shipping_number: str | None = None
+    shipping_complement: str | None = None
+
+    shipping_service_id: int | None = None
+    shipping_service_name: str | None = None
+    shipping_company: str | None = None
+    shipping_price: Decimal = Decimal("0.00")
+    shipping_delivery_min: int | None = None
+    shipping_delivery_max: int | None = None
 
     items: list[OrderItemCreate]
 
@@ -87,6 +99,14 @@ class OrderResponse(BaseModel):
     shipping_city: str | None = None
     shipping_street: str | None = None
     shipping_number: str | None = None
+    shipping_complement: str | None = None
+
+    shipping_service_id: int | None = None
+    shipping_service_name: str | None = None
+    shipping_company: str | None = None
+    shipping_price: Decimal = Decimal("0.00")
+    shipping_delivery_min: int | None = None
+    shipping_delivery_max: int | None = None
 
     total: Decimal
     status: str
@@ -98,5 +118,44 @@ class OrderResponse(BaseModel):
     
     created_at: datetime
     items: list[OrderItemResponse]
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+# =========================
+# BLOG
+# =========================
+
+class BlogPostCreate(BaseModel):
+    title: str
+    slug: str
+    summary: str
+    content: str
+    category: str
+    image_url: str | None = None
+    published: bool = False
+
+
+class BlogPostUpdate(BaseModel):
+    title: str | None = None
+    slug: str | None = None
+    summary: str | None = None
+    content: str | None = None
+    category: str | None = None
+    image_url: str | None = None
+    published: bool | None = None
+
+
+class BlogPostResponse(BaseModel):
+    id: int
+    title: str
+    slug: str
+    summary: str
+    content: str
+    category: str
+    image_url: str | None = None
+    published: bool
+    created_at: datetime
+    updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)

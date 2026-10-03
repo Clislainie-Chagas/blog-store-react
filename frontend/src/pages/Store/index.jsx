@@ -11,6 +11,8 @@ export default function Store({
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [selectedCategory, setSelectedCategory] = useState("Todos");
+    const [searchTerm, setSearchTerm] = useState("");
+    const [sortOrder, setSortOrder] = useState("default");
 
     useEffect(() => {
         fetch(`${API_URL}/products/`)
@@ -47,13 +49,37 @@ export default function Store({
     ];
 
     // Filtra os produtos físicos pela categoria selecionada
-    const filteredProducts =
-        selectedCategory === "Todos"
-            ? physicalProducts
-            : physicalProducts.filter(
-                (product) =>
-                    product.category === selectedCategory
-            );
+    const filteredProducts = physicalProducts.filter((product) => {
+        const matchesCategory =
+            selectedCategory === "Todos" ||
+            product.category === selectedCategory;
+
+        const search = searchTerm.toLowerCase().trim();
+
+        const matchesSearch =
+            !search ||
+            product.name?.toLowerCase().includes(search) ||
+            product.description?.toLowerCase().includes(search) ||
+            product.category?.toLowerCase().includes(search);
+
+        return matchesCategory && matchesSearch;
+    });
+
+    const sortedProducts = [...filteredProducts].sort((a, b) => {
+        if (sortOrder === "price-low") {
+            return Number(a.price) - Number(b.price);
+        }
+
+        if (sortOrder === "price-high") {
+            return Number(b.price) - Number(a.price);
+        }
+
+        if (sortOrder === "name") {
+            return a.name.localeCompare(b.name, "pt-BR");
+        }
+
+        return 0;
+    });
 
     return (
         <main className="min-h-screen px-6 py-16 text-white">
@@ -91,6 +117,24 @@ export default function Store({
 
                 {!loading && !error && (
                     <>
+
+                        {/* BUSCA */}
+                        <div className="mb-8">
+                            <div className="relative max-w-xl">
+                                <input
+                                    type="text"
+                                    value={searchTerm}
+                                    onChange={(event) => setSearchTerm(event.target.value)}
+                                    placeholder="Buscar produtos..."
+                                    className="w-full rounded-xl border border-white/10 bg-white/5 px-5 py-3 pr-12 text-white outline-none transition placeholder:text-slate-500 focus:border-violet-500 focus:bg-white/10"
+                                />
+
+                                <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-lg text-slate-400">
+                                    🔍
+                                </span>
+                            </div>
+                        </div>
+
                         {/* FILTROS */}
                         <div className="mb-10 flex flex-wrap gap-3">
                             {categories.map((category) => (
@@ -101,8 +145,8 @@ export default function Store({
                                         setSelectedCategory(category)
                                     }
                                     className={`rounded-full px-5 py-2 text-sm font-medium transition ${selectedCategory === category
-                                            ? "bg-violet-600 text-white"
-                                            : "border border-white/10 bg-white/5 text-slate-300 hover:bg-white/10"
+                                        ? "bg-violet-600 text-white"
+                                        : "border border-white/10 bg-white/5 text-slate-300 hover:bg-white/10"
                                         }`}
                                 >
                                     {category}
@@ -110,10 +154,30 @@ export default function Store({
                             ))}
                         </div>
 
+                        {/* CONTADOR E ORDENAÇÃO */}
+                        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                            <p className="text-sm text-slate-400">
+                                {sortedProducts.length === 1
+                                    ? "1 produto encontrado"
+                                    : `${sortedProducts.length} produtos encontrados`}
+                            </p>
+
+                            <select
+                                value={sortOrder}
+                                onChange={(event) => setSortOrder(event.target.value)}
+                                className="rounded-xl border border-white/10 bg-slate-900 px-4 py-3 text-sm text-slate-300 outline-none transition focus:border-violet-500"
+                            >
+                                <option value="default">Ordenar por</option>
+                                <option value="price-low">Menor preço</option>
+                                <option value="price-high">Maior preço</option>
+                                <option value="name">Nome A–Z</option>
+                            </select>
+                        </div>
+
                         {/* PRODUTOS FÍSICOS */}
-                        {filteredProducts.length > 0 ? (
+                        {sortedProducts.length > 0 ? (
                             <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-                                {filteredProducts.map((product) => (
+                                {sortedProducts.map((product) => (
                                     <ProductCard
                                         key={product.id}
                                         id={product.id}

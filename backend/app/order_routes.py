@@ -37,6 +37,8 @@ def create_order(
     total = Decimal("0.00")
     order_items = []
 
+    has_physical_items = False
+
     for item_data in order_data.items:
         if item_data.quantity <= 0:
             raise HTTPException(
@@ -54,6 +56,9 @@ def create_order(
                 detail=f"Produto {item_data.product_id} não encontrado"
             )
 
+        if product.product_type == "physical":
+            has_physical_items = True
+
         if product.stock < item_data.quantity:
             raise HTTPException(
                 status_code=400,
@@ -69,6 +74,25 @@ def create_order(
             "unit_price": product.price
         })
 
+    shipping_price = Decimal("0.00")
+
+    if has_physical_items:
+        if order_data.shipping_service_id is None:
+            raise HTTPException(
+                status_code=400,
+                detail="Selecione uma opção de frete para continuar"
+            )
+
+        if order_data.shipping_price <= 0:
+            raise HTTPException(
+                status_code=400,
+                detail="O valor do frete é inválido"
+            )
+
+        shipping_price = order_data.shipping_price
+
+    total += shipping_price
+
     new_order = Order(
         customer_name=order_data.customer_name,
         customer_email=order_data.customer_email,
@@ -79,6 +103,14 @@ def create_order(
         shipping_city=order_data.shipping_city,
         shipping_street=order_data.shipping_street,
         shipping_number=order_data.shipping_number,
+        shipping_complement=order_data.shipping_complement,
+
+        shipping_service_id=order_data.shipping_service_id,
+        shipping_service_name=order_data.shipping_service_name,
+        shipping_company=order_data.shipping_company,
+        shipping_price=shipping_price,
+        shipping_delivery_min=order_data.shipping_delivery_min,
+        shipping_delivery_max=order_data.shipping_delivery_max,
 
         total=total
     )

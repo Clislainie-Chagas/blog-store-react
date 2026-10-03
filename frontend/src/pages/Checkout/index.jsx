@@ -14,13 +14,27 @@ export default function Checkout({ cart = [] }) {
         state: "",
         street: "",
         number: "",
+        complement: "",
         city: "",
     });
-    const [shipping,] = useState(null);
+    const [shipping, setShipping] = useState(null);
+    const [shippingOptions, setShippingOptions] = useState([]);
+    const [selectedShipping, setSelectedShipping] = useState(null);
+    const [isLoadingShipping, setIsLoadingShipping] = useState(false);
+
     const [isLoadingCep, setIsLoadingCep] = useState(false);
+
+    const hasPhysicalItems = cart.some(
+        (item) => (item.product_type ?? "physical") === "physical"
+    );
+
     const subtotal = cart.reduce(
-        (total, item) => total + item.price * item.quantity, 0);
+        (total, item) => total + Number(item.price) * item.quantity,
+        0
+    );
+
     const total = subtotal + (shipping ?? 0);
+
     const [orderMessage, setOrderMessage] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [createdOrder, setCreatedOrder] = useState(null);
@@ -125,9 +139,92 @@ export default function Checkout({ cart = [] }) {
             setIsLoadingCep(false);
         }
     };
+
+    const handleCalculateShipping = async () => {
+        const cleanCep = formData.cep.replace(/\D/g, "");
+
+        if (cleanCep.length !== 8) {
+            setErrors((currentErrors) => ({
+                ...currentErrors,
+                cep: "Informe um CEP válido para calcular o frete.",
+            }));
+            return;
+        }
+
+        const physicalItems = cart.filter(
+            (item) => (item.product_type ?? "physical") === "physical"
+        );
+
+        if (physicalItems.length === 0) {
+            setShipping(0);
+            setShippingOptions([]);
+            setSelectedShipping(null);
+            return;
+        }
+
+        setIsLoadingShipping(true);
+        setShippingOptions([]);
+        setSelectedShipping(null);
+        setShipping(null);
+
+        try {
+            /*
+             * PRIMEIRO TESTE:
+             * usamos as mesmas medidas que já funcionaram no Swagger.
+             *
+             * Depois substituiremos isso pelas medidas reais dos produtos
+             * cadastradas no PostgreSQL.
+             */
+            const response = await fetch(`${API_URL}/shipping/quote`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    destination_cep: cleanCep,
+                    weight: 0.5,
+                    width: 12,
+                    height: 2,
+                    length: 17,
+                    insurance_value: subtotal,
+                }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+
+                throw new Error(
+                    typeof errorData.detail === "string"
+                        ? errorData.detail
+                        : "Não foi possível calcular o frete."
+                );
+            }
+
+            const options = await response.json();
+
+            setShippingOptions(options);
+
+            if (options.length === 0) {
+                throw new Error(
+                    "Nenhuma opção de entrega disponível para este CEP."
+                );
+            }
+        } catch (error) {
+            console.error("Erro ao calcular frete:", error);
+
+            setShippingOptions([]);
+            setSelectedShipping(null);
+            setShipping(null);
+
+            setOrderMessage(error.message);
+        } finally {
+            setIsLoadingShipping(false);
+        }
+    };
     const validateForm = () => {
         const newErrors = {};
 
+        // Dados pessoais — obrigatórios para qualquer compra
         if (!formData.name.trim()) {
             newErrors.name = "Informe seu nome completo.";
         }
@@ -144,34 +241,39 @@ export default function Checkout({ cart = [] }) {
             newErrors.phone = "Informe seu telefone.";
         }
 
-        if (!formData.cep.trim()) {
-            newErrors.cep = "Informe seu CEP.";
-        } else if (
-            formData.cep.replace(/\D/g, "").length !== 8
-        ) {
-            newErrors.cep = "O CEP deve conter 8 números.";
-        }
+        // Endereço — obrigatório somente quando houver produto físico
+        if (hasPhysicalItems) {
+            if (!formData.cep.trim()) {
+                newErrors.cep = "Informe seu CEP.";
+            } else if (
+                formData.cep.replace(/\D/g, "").length !== 8
+            ) {
+                newErrors.cep = "O CEP deve conter 8 números.";
+            }
 
-        if (!formData.state.trim()) {
-            newErrors.state = "Informe o estado.";
-        }
+            if (!formData.state.trim()) {
+                newErrors.state = "Informe o estado.";
+            }
 
-        if (!formData.street.trim()) {
-            newErrors.street = "Informe a rua.";
-        }
+            if (!formData.street.trim()) {
+                newErrors.street = "Informe a rua.";
+            }
 
-        if (!formData.number.trim()) {
-            newErrors.number = "Informe o número.";
-        }
+            if (!formData.number.trim()) {
+                newErrors.number = "Informe o número.";
+            }
 
-        if (!formData.city.trim()) {
-            newErrors.city = "Informe a cidade.";
+            if (!formData.city.trim()) {
+                newErrors.city = "Informe a cidade.";
+            }
         }
 
         setErrors(newErrors);
 
         return Object.keys(newErrors).length === 0;
     };
+
+
     const handleContinue = async () => {
 
 
@@ -180,6 +282,17 @@ export default function Checkout({ cart = [] }) {
         }
 
         if (isLoadingCep) {
+            return;
+        }
+
+        const hasPhysicalItems = cart.some(
+            (item) => (item.product_type ?? "physical") === "physical"
+        );
+
+        if (hasPhysicalItems && !selectedShipping) {
+            setOrderMessage(
+                "Selecione uma opção de entrega antes de continuar para o pagamento."
+            );
             return;
         }
 
@@ -205,6 +318,14 @@ export default function Checkout({ cart = [] }) {
             shipping_city: formData.city,
             shipping_street: formData.street,
             shipping_number: formData.number,
+            shipping_complement: formData.complement || null,
+            shipping_service_id: selectedShipping?.id ?? null,
+
+            shipping_service_name: selectedShipping?.name ?? null,
+            shipping_company: selectedShipping?.company ?? null,
+            shipping_price: shipping ?? 0,
+            shipping_delivery_min: selectedShipping?.delivery_min ?? null,
+            shipping_delivery_max: selectedShipping?.delivery_max ?? null,
 
             items: cart.map((item) => ({
                 product_id: item.id,
@@ -214,7 +335,7 @@ export default function Checkout({ cart = [] }) {
 
         try {
             const response = await fetch(
-                `${API_URL}/orders`,
+                `${API_URL}/orders/`,
                 {
                     method: "POST",
                     headers: {
@@ -240,7 +361,6 @@ export default function Checkout({ cart = [] }) {
                 `Pedido #${order.id} criado com sucesso!`
             );
 
-            console.log("Pedido criado:", createdOrder);
         } catch (error) {
             console.error("Erro ao criar pedido:", error.message);
             setOrderMessage(error.message);
@@ -351,123 +471,219 @@ export default function Checkout({ cart = [] }) {
                             </div>
                         </div>
 
-                        <div className="rounded-2xl border border-white/10 bg-slate-900/50 p-6">
+                        {hasPhysicalItems && (
 
-                            <h2 className="mb-6 text-xl font-semibold">
-                                Endereço de entrega
-                            </h2>
+                            <div className="rounded-2xl border border-white/10 bg-slate-900/50 p-6">
 
-                            <div className="grid gap-5 md:grid-cols-2">
+                                <h2 className="mb-6 text-xl font-semibold">
+                                    Endereço de entrega
+                                </h2>
 
-                                <div>
-                                    <label className="mb-2 block text-sm text-slate-300">
-                                        CEP
-                                    </label>
+                                <div className="grid gap-5 md:grid-cols-2">
 
-                                    <input
-                                        type="text"
-                                        name="cep"
-                                        value={formData.cep}
-                                        onChange={handleChange}
-                                        onBlur={handleCepBlur}
-                                        maxLength={9}
-                                        placeholder="00000-000"
-                                        className="w-full rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3 outline-none transition focus:border-violet-400"
-                                    />
-                                    {isLoadingCep && (
-                                        <p className="mt-2 text-sm text-violet-300">
-                                            Buscando CEP...
-                                        </p>
+                                    <div>
+                                        <label className="mb-2 block text-sm text-slate-300">
+                                            CEP
+                                        </label>
+
+                                        <input
+                                            type="text"
+                                            name="cep"
+                                            value={formData.cep}
+                                            onChange={handleChange}
+                                            onBlur={handleCepBlur}
+                                            maxLength={9}
+                                            placeholder="00000-000"
+                                            className="w-full rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3 outline-none transition focus:border-violet-400"
+                                        />
+                                        {isLoadingCep && (
+                                            <p className="mt-2 text-sm text-violet-300">
+                                                Buscando CEP...
+                                            </p>
+                                        )}
+                                        {errors.cep && (
+                                            <p className="mt-2 text-sm text-red-400">
+                                                {errors.cep}
+                                            </p>
+                                        )}
+
+                                        <button
+                                            type="button"
+                                            onClick={handleCalculateShipping}
+                                            disabled={isLoadingShipping}
+                                            className="
+        mt-3
+        rounded-lg
+        bg-violet-600
+        px-4
+        py-2
+        text-sm
+        font-semibold
+        text-white
+        transition
+        hover:bg-violet-500
+        disabled:cursor-not-allowed
+        disabled:bg-slate-700
+        disabled:text-slate-400
+    "
+                                        >
+                                            {isLoadingShipping
+                                                ? "Calculando..."
+                                                : "Calcular frete"}
+                                        </button>
+
+                                    </div>
+
+                                    {shippingOptions.length > 0 && (
+                                        <div className="md:col-span-2 rounded-xl border border-white/10 bg-slate-950/40 p-4">
+                                            <p className="mb-3 font-semibold text-white">
+                                                Escolha uma opção de entrega
+                                            </p>
+
+                                            <div className="space-y-3">
+                                                {shippingOptions.map((option) => (
+                                                    <label
+                                                        key={option.id}
+                                                        className="flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-white/10 p-4 transition hover:border-violet-400"
+                                                    >
+                                                        <div className="flex items-center gap-3">
+                                                            <input
+                                                                type="radio"
+                                                                name="shippingOption"
+                                                                checked={selectedShipping?.id === option.id}
+                                                                onChange={() => {
+                                                                    setSelectedShipping(option);
+                                                                    setShipping(Number(option.price));
+                                                                    setOrderMessage("");
+                                                                }}
+                                                            />
+
+                                                            <div>
+                                                                <p className="font-semibold">
+                                                                    {option.company} {option.name}
+                                                                </p>
+
+                                                                <p className="text-sm text-slate-400">
+                                                                    Prazo: {option.delivery_min} a{" "}
+                                                                    {option.delivery_max} dias
+                                                                </p>
+                                                            </div>
+                                                        </div>
+
+                                                        <strong className="whitespace-nowrap text-violet-300">
+                                                            {Number(option.price).toLocaleString("pt-BR", {
+                                                                style: "currency",
+                                                                currency: "BRL",
+                                                            })}
+                                                        </strong>
+                                                    </label>
+                                                ))}
+                                            </div>
+                                        </div>
                                     )}
-                                    {errors.cep && (
-                                        <p className="mt-2 text-sm text-red-400">
-                                            {errors.cep}
+
+                                    <div>
+                                        <label className="mb-2 block text-sm text-slate-300">
+                                            Estado
+                                        </label>
+
+                                        <input
+                                            type="text"
+                                            name="state"
+                                            value={formData.state}
+                                            onChange={handleChange}
+                                            placeholder="SC"
+                                            className="w-full rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3 outline-none transition focus:border-violet-400"
+                                        />
+                                        {errors.state && (
+                                            <p className="mt-2 text-sm text-red-400">
+                                                {errors.state}
+                                            </p>
+                                        )}
+                                    </div>
+
+                                    <div className="md:col-span-2">
+                                        <label className="mb-2 block text-sm text-slate-300">
+                                            Rua
+                                        </label>
+
+                                        <input
+                                            type="text"
+                                            name="street"
+                                            value={formData.street}
+                                            onChange={handleChange}
+                                            placeholder="Nome da rua"
+                                            className="w-full rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3 outline-none transition focus:border-violet-400"
+                                        />
+                                        {errors.street && (
+                                            <p className="mt-2 text-sm text-red-400">
+                                                {errors.street}
+                                            </p>
+                                        )}
+                                    </div>
+
+                                    <div>
+                                        <label className="mb-2 block text-sm text-slate-300">
+                                            Número
+                                        </label>
+
+                                        <input
+                                            type="text"
+                                            name="number"
+                                            value={formData.number}
+                                            onChange={handleChange}
+                                            placeholder="123"
+                                            className="w-full rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3 outline-none transition focus:border-violet-400"
+                                        />
+                                        {errors.number && (
+                                            <p className="mt-2 text-sm text-red-400">
+                                                {errors.number}
+                                            </p>
+                                        )}
+                                    </div>
+
+                                    <div>
+                                        <label className="mb-2 block text-sm text-slate-300">
+                                            Complemento
+                                        </label>
+
+                                        <input
+                                            type="text"
+                                            name="complement"
+                                            value={formData.complement}
+                                            onChange={handleChange}
+                                            placeholder="Apto, bloco, sala..."
+                                            className="w-full rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3 outline-none transition focus:border-violet-400"
+                                        />
+
+                                        <p className="mt-2 text-xs text-slate-500">
+                                            Opcional
                                         </p>
-                                    )}
+                                    </div>
+
+                                    <div>
+                                        <label className="mb-2 block text-sm text-slate-300">
+                                            Cidade
+                                        </label>
+
+                                        <input
+                                            type="text"
+                                            name="city"
+                                            value={formData.city}
+                                            onChange={handleChange}
+                                            placeholder="Sua cidade"
+                                            className="w-full rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3 outline-none transition focus:border-violet-400"
+                                        />
+                                        {errors.city && (
+                                            <p className="mt-2 text-sm text-red-400">
+                                                {errors.city}
+                                            </p>
+                                        )}
+                                    </div>
+
                                 </div>
-
-                                <div>
-                                    <label className="mb-2 block text-sm text-slate-300">
-                                        Estado
-                                    </label>
-
-                                    <input
-                                        type="text"
-                                        name="state"
-                                        value={formData.state}
-                                        onChange={handleChange}
-                                        placeholder="SC"
-                                        className="w-full rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3 outline-none transition focus:border-violet-400"
-                                    />
-                                    {errors.state && (
-                                        <p className="mt-2 text-sm text-red-400">
-                                            {errors.state}
-                                        </p>
-                                    )}
-                                </div>
-
-                                <div className="md:col-span-2">
-                                    <label className="mb-2 block text-sm text-slate-300">
-                                        Rua
-                                    </label>
-
-                                    <input
-                                        type="text"
-                                        name="street"
-                                        value={formData.street}
-                                        onChange={handleChange}
-                                        placeholder="Nome da rua"
-                                        className="w-full rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3 outline-none transition focus:border-violet-400"
-                                    />
-                                    {errors.street && (
-                                        <p className="mt-2 text-sm text-red-400">
-                                            {errors.street}
-                                        </p>
-                                    )}
-                                </div>
-
-                                <div>
-                                    <label className="mb-2 block text-sm text-slate-300">
-                                        Número
-                                    </label>
-
-                                    <input
-                                        type="text"
-                                        name="number"
-                                        value={formData.number}
-                                        onChange={handleChange}
-                                        placeholder="123"
-                                        className="w-full rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3 outline-none transition focus:border-violet-400"
-                                    />
-                                    {errors.number && (
-                                        <p className="mt-2 text-sm text-red-400">
-                                            {errors.number}
-                                        </p>
-                                    )}
-                                </div>
-
-                                <div>
-                                    <label className="mb-2 block text-sm text-slate-300">
-                                        Cidade
-                                    </label>
-
-                                    <input
-                                        type="text"
-                                        name="city"
-                                        value={formData.city}
-                                        onChange={handleChange}
-                                        placeholder="Sua cidade"
-                                        className="w-full rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3 outline-none transition focus:border-violet-400"
-                                    />
-                                    {errors.city && (
-                                        <p className="mt-2 text-sm text-red-400">
-                                            {errors.city}
-                                        </p>
-                                    )}
-                                </div>
-
                             </div>
-                        </div>
+                        )}
 
                     </section>
 
@@ -495,7 +711,7 @@ export default function Checkout({ cart = [] }) {
                                     </div>
 
                                     <p className="whitespace-nowrap text-sm">
-                                        {(item.price * item.quantity).toLocaleString(
+                                        {(Number(item.price) * item.quantity).toLocaleString(
                                             "pt-BR",
                                             {
                                                 style: "currency",
@@ -512,7 +728,7 @@ export default function Checkout({ cart = [] }) {
                             <span>Subtotal</span>
 
                             <span>
-                                {total.toLocaleString("pt-BR", {
+                                {subtotal.toLocaleString("pt-BR", {
                                     style: "currency",
                                     currency: "BRL",
                                 })}
@@ -520,18 +736,16 @@ export default function Checkout({ cart = [] }) {
 
                         </div>
 
-                        <div className="mt-3 flex items-center justify-between text-slate-300">
-                            <span>Frete</span>
-
-                            <span>
-                                {shipping === null
-                                    ? "A calcular"
-                                    : shipping.toLocaleString("pt-BR", {
-                                        style: "currency",
-                                        currency: "BRL",
-                                    })}
-                            </span>
-                        </div>
+                        {hasPhysicalItems && (
+                            <div className="mt-3 flex items-center justify-between text-slate-300">
+                                <span>Frete</span>
+                                <span>
+                                    {shipping !== null
+                                        ? `R$ ${shipping.toFixed(2).replace(".", ",")}`
+                                        : "A calcular"}
+                                </span>
+                            </div>
+                        )}
 
                         <div className="mt-6 border-t border-white/10 pt-5">
                             <div className="flex items-center justify-between">
@@ -540,7 +754,7 @@ export default function Checkout({ cart = [] }) {
                                 </span>
 
                                 <span className="text-xl font-bold text-violet-300">
-                                    {subtotal.toLocaleString("pt-BR", {
+                                    {total.toLocaleString("pt-BR", {
                                         style: "currency",
                                         currency: "BRL",
                                     })}

@@ -11,6 +11,10 @@ export default function AdminProducts() {
         image: "",
         description: "",
         stock: "",
+        weight: "",
+        length: "",
+        width: "",
+        height: "",
     });
 
     const [products, setProducts] = useState([]);
@@ -66,6 +70,11 @@ export default function AdminProducts() {
             image: "",
             description: "",
             stock: "",
+            weight: "",
+            length: "",
+            width: "",
+            height: "",
+
         });
 
         setEditingProductId(null);
@@ -78,6 +87,10 @@ export default function AdminProducts() {
             ...formData,
             price: Number(formData.price),
             stock: Number(formData.stock),
+            weight: formData.weight ? Number(formData.weight) : null,
+            length: formData.length ? Number(formData.length) : null,
+            width: formData.width ? Number(formData.width) : null,
+            height: formData.height ? Number(formData.height) : null,
         };
 
         const isEditing = editingProductId !== null;
@@ -165,7 +178,12 @@ export default function AdminProducts() {
             image: product.image || "",
             description: product.description || "",
             stock: product.stock,
+            weight: product.weight || "",
+            length: product.length || "",
+            width: product.width || "",
+            height: product.height || "",
         });
+
 
         window.scrollTo({
             top: 0,
@@ -320,6 +338,104 @@ export default function AdminProducts() {
                         required
                         className="w-full rounded-xl border border-white/10 bg-slate-900 px-4 py-3 outline-none focus:border-violet-500"
                     />
+
+                    {formData.product_type === "physical" && (
+                        <div className="rounded-2xl border border-white/10 bg-slate-900/50 p-5">
+                            <h3 className="text-lg font-semibold text-white">
+                                Dados para envio
+                            </h3>
+
+                            <p className="mt-1 text-sm text-slate-400">
+                                Informe o peso e as dimensões do produto para o cálculo do frete.
+                            </p>
+
+                            <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                                <div>
+                                    <label
+                                        htmlFor="weight"
+                                        className="mb-2 block text-sm text-slate-300"
+                                    >
+                                        Peso (kg)
+                                    </label>
+
+                                    <input
+                                        id="weight"
+                                        type="number"
+                                        name="weight"
+                                        value={formData.weight}
+                                        onChange={handleChange}
+                                        placeholder="Ex.: 0.350"
+                                        step="0.001"
+                                        min="0"
+                                        className="w-full rounded-xl border border-white/10 bg-slate-900 px-4 py-3 outline-none focus:border-violet-500"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label
+                                        htmlFor="length"
+                                        className="mb-2 block text-sm text-slate-300"
+                                    >
+                                        Comprimento (cm)
+                                    </label>
+
+                                    <input
+                                        id="length"
+                                        type="number"
+                                        name="length"
+                                        value={formData.length}
+                                        onChange={handleChange}
+                                        placeholder="Ex.: 20"
+                                        step="0.01"
+                                        min="0"
+                                        className="w-full rounded-xl border border-white/10 bg-slate-900 px-4 py-3 outline-none focus:border-violet-500"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label
+                                        htmlFor="width"
+                                        className="mb-2 block text-sm text-slate-300"
+                                    >
+                                        Largura (cm)
+                                    </label>
+
+                                    <input
+                                        id="width"
+                                        type="number"
+                                        name="width"
+                                        value={formData.width}
+                                        onChange={handleChange}
+                                        placeholder="Ex.: 15"
+                                        step="0.01"
+                                        min="0"
+                                        className="w-full rounded-xl border border-white/10 bg-slate-900 px-4 py-3 outline-none focus:border-violet-500"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label
+                                        htmlFor="height"
+                                        className="mb-2 block text-sm text-slate-300"
+                                    >
+                                        Altura (cm)
+                                    </label>
+
+                                    <input
+                                        id="height"
+                                        type="number"
+                                        name="height"
+                                        value={formData.height}
+                                        onChange={handleChange}
+                                        placeholder="Ex.: 10"
+                                        step="0.01"
+                                        min="0"
+                                        className="w-full rounded-xl border border-white/10 bg-slate-900 px-4 py-3 outline-none focus:border-violet-500"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     <button
                         type="submit"

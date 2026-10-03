@@ -87,6 +87,12 @@ function AdminOrders() {
                                                     {order.shipping_street}, {order.shipping_number}
                                                 </p>
 
+                                                {order.shipping_complement && (
+                                                    <p className="text-sm text-slate-300">
+                                                        Complemento: {order.shipping_complement}
+                                                    </p>
+                                                )}
+
                                                 <p className="text-sm text-slate-300">
                                                     {order.shipping_city} - {order.shipping_state}
                                                 </p>

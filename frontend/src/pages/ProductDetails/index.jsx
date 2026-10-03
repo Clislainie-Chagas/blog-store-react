@@ -35,7 +35,6 @@ export default function ProductDetails({
     }, [id]);
 
     function handleAddToCart() {
-        console.log("Clique em adicionar:", product);
 
         setCartMessage(true);
 
@@ -124,44 +123,42 @@ export default function ProductDetails({
                             {product.description}
                         </p>
 
-                        <p
-                            className={`mt-6 font-medium ${product.stock > 0
-                                ? "text-emerald-400"
-                                : "text-red-400"
-                                }`}
-                        >
-                            {product.stock > 0
-                                ? `${product.stock} unidades disponíveis`
-                                : "Produto esgotado"}
-                        </p>
+                        <div className="mt-6">
+                            <span
+                                className={`inline-flex rounded-full px-3 py-1 text-sm font-semibold ${product.stock === 0
+                                    ? "bg-red-500/10 text-red-300"
+                                    : product.stock <= 3
+                                        ? "bg-amber-500/10 text-amber-300"
+                                        : "bg-emerald-500/10 text-emerald-300"
+                                    }`}
+                            >
+                                {product.stock === 0
+                                    ? "Produto esgotado"
+                                    : product.stock === 1
+                                        ? "Última unidade"
+                                        : product.stock <= 3
+                                            ? `Últimas ${product.stock} unidades`
+                                            : "Em estoque"}
+                            </span>
+                        </div>
 
                         <button
                             type="button"
                             onClick={handleAddToCart}
                             disabled={product.stock === 0}
-                            className="
-        mt-10
-        inline-flex
-        w-fit
-        items-center
-        gap-2
-        rounded-xl
-        bg-violet-600
-        px-7
-        py-3
-        font-semibold
-        transition
-        hover:bg-violet-500
-        disabled:cursor-not-allowed
-        disabled:bg-slate-700
-        disabled:text-slate-400
-    "
-                        >
+                            className={`mt-10 inline-flex w-fit items-center gap-2 rounded-xl px-7 py-3 font-semibold text-white transition 
+                                ${cartMessage
+                                    ? "bg-emerald-600 hover:bg-emerald-600"
+                                    : "bg-violet-600 hover:bg-violet-500"
+                                } disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400`
+                            }>
                             <ShoppingCart size={19} />
 
-                            {product.stock > 0
-                                ? "Adicionar ao carrinho"
-                                : "Produto esgotado"}
+                            {product.stock === 0
+                                ? "Produto esgotado"
+                                : cartMessage
+                                    ? "✓ Adicionado ao carrinho"
+                                    : "Adicionar ao carrinho"}
                         </button>
 
                         {cartMessage && (

@@ -13,7 +13,7 @@ export default function Cart({
     onRemoveFromCart,
 }) {
     const total = cart.reduce(
-        (sum, item) => sum + item.price * item.quantity,
+        (sum, item) => sum + Number(item.price) * item.quantity,
         0
     );
 
@@ -93,7 +93,7 @@ export default function Cart({
 
                                         {/* PREÇO UNITÁRIO */}
                                         <p className="mt-2 font-semibold">
-                                            {item.price.toLocaleString("pt-BR", {
+                                            {Number(item.price).toLocaleString("pt-BR", {
                                                 style: "currency",
                                                 currency: "BRL",
                                             })}
@@ -174,7 +174,7 @@ export default function Cart({
                                             Subtotal:{" "}
                                             <span className="font-semibold text-white">
                                                 {(
-                                                    item.price * item.quantity
+                                                    Number(item.price) * item.quantity
                                                 ).toLocaleString("pt-BR", {
                                                     style: "currency",
                                                     currency: "BRL",
@@ -209,7 +209,7 @@ export default function Cart({
 
                                     <span>
                                         {(
-                                            item.price * item.quantity
+                                            Number(item.price) * item.quantity
                                         ).toLocaleString("pt-BR", {
                                             style: "currency",
                                             currency: "BRL",
@@ -219,6 +219,18 @@ export default function Cart({
                             ))}
 
                             <div className="my-6 border-t border-white/10" />
+
+                            {/* QUANTIDADE TOTAL */}
+                            <div className="mb-4 flex items-center justify-between text-sm text-slate-400">
+                                <span>Itens no carrinho</span>
+
+                                <span>
+                                    {cart.reduce(
+                                        (totalItems, item) => totalItems + item.quantity,
+                                        0
+                                    )}
+                                </span>
+                            </div>
 
                             {/* TOTAL */}
                             <div className="flex items-center justify-between">
