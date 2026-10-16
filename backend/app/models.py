@@ -22,13 +22,15 @@ class Order(Base):
     customer_email = Column(String(255), nullable=False)
 
     customer_phone = Column(String(30), nullable=True)
+    customer_document = Column(String(20), nullable=True)
 
     shipping_cep = Column(String(10), nullable=True)
     shipping_state = Column(String(2), nullable=True)
     shipping_city = Column(String(150), nullable=True)
     shipping_street = Column(String(255), nullable=True)
-    shipping_number = Column(String(30), nullable=True) 
+    shipping_number = Column(String(30), nullable=True)
     shipping_complement = Column(String(150), nullable=True)
+    shipping_district = Column(String(150), nullable=True)
 
     shipping_service_id = Column(Integer, nullable=True)
     shipping_service_name = Column(String(100), nullable=True)
@@ -59,6 +61,12 @@ class Order(Base):
         String(255),
         nullable=True
     )
+    melhor_envio_order_id = Column(String(100), nullable=True)
+    melhor_envio_purchase_id = Column(String(100), nullable=True)
+    melhor_envio_generate_key = Column(String(100), nullable=True)
+    tracking_code = Column(String(100), nullable=True)
+    shipping_email_sent_at = Column(DateTime(timezone=True), nullable=True)
+    shipping_email_status = Column(String(20), nullable=False, default="pending")
 
     created_at = Column(
         DateTime,
@@ -132,6 +140,7 @@ class ContactMessage(Base):
     message = Column(Text, nullable=False)
 
     is_read = Column(Boolean, default=False, nullable=False)
+    is_replied = Column(Boolean, default=False, nullable=False)
 
     created_at = Column(
         DateTime,

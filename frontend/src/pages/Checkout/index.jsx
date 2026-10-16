@@ -15,6 +15,7 @@ export default function Checkout({ cart = [] }) {
         street: "",
         number: "",
         complement: "",
+        district: "",
         city: "",
     });
     const [shipping, setShipping] = useState(null);
@@ -62,6 +63,16 @@ export default function Checkout({ cart = [] }) {
             .replace(/^(\d{2})(\d)/, "($1) $2")
             .replace(/(\d{5})(\d)/, "$1-$2");
     };
+
+    const formatCpf = (value) => {
+        const numbers = value.replace(/\D/g, "").slice(0, 11);
+
+        return numbers
+            .replace(/(\d{3})(\d)/, "$1.$2")
+            .replace(/(\d{3})(\d)/, "$1.$2")
+            .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+    };
+
     const handleChange = (event) => {
         const { name, value } = event.target;
 
@@ -73,6 +84,10 @@ export default function Checkout({ cart = [] }) {
 
         if (name === "phone") {
             formattedValue = formatPhone(value);
+        }
+
+        if (name === "document") {
+            formattedValue = formatCpf(value);
         }
 
         setFormData((currentData) => ({
@@ -121,7 +136,9 @@ export default function Checkout({ cart = [] }) {
                 ...currentData,
                 street: data.logradouro || "",
                 city: data.localidade || "",
+                district: data.bairro || "",
                 state: data.uf || "",
+
             }));
 
             setErrors((currentErrors) => ({
@@ -263,9 +280,14 @@ export default function Checkout({ cart = [] }) {
                 newErrors.number = "Informe o número.";
             }
 
+            if (!formData.district.trim()) {
+                newErrors.district = "Informe o bairro.";
+            }
+
             if (!formData.city.trim()) {
                 newErrors.city = "Informe a cidade.";
             }
+
         }
 
         setErrors(newErrors);
@@ -312,6 +334,7 @@ export default function Checkout({ cart = [] }) {
             customer_name: formData.name,
             customer_email: formData.email,
             customer_phone: formData.phone,
+            customer_document: formData.document.replace(/\D/g, ""),
 
             shipping_cep: formData.cep,
             shipping_state: formData.state,
@@ -319,6 +342,8 @@ export default function Checkout({ cart = [] }) {
             shipping_street: formData.street,
             shipping_number: formData.number,
             shipping_complement: formData.complement || null,
+            shipping_district: formData.district,
+
             shipping_service_id: selectedShipping?.id ?? null,
 
             shipping_service_name: selectedShipping?.name ?? null,
@@ -443,6 +468,28 @@ export default function Checkout({ cart = [] }) {
                                     {errors.email && (
                                         <p className="mt-2 text-sm text-red-400">
                                             {errors.email}
+                                        </p>
+                                    )}
+                                </div>
+
+                                <div>
+                                    <label className="mb-2 block text-sm text-slate-300">
+                                        CPF
+                                    </label>
+
+                                    <input
+                                        type="text"
+                                        name="document"
+                                        value={formData.document}
+                                        onChange={handleChange}
+                                        maxLength={14}
+                                        placeholder="000.000.000-00"
+                                        className="w-full rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3 outline-none transition focus:border-violet-400"
+                                    />
+
+                                    {errors.document && (
+                                        <p className="mt-2 text-sm text-red-400">
+                                            {errors.document}
                                         </p>
                                     )}
                                 </div>
@@ -677,6 +724,26 @@ export default function Checkout({ cart = [] }) {
                                         {errors.city && (
                                             <p className="mt-2 text-sm text-red-400">
                                                 {errors.city}
+                                            </p>
+                                        )}
+                                    </div>
+                                    <div>
+                                        <label className="mb-2 block text-sm text-slate-300">
+                                            Bairro
+                                        </label>
+
+                                        <input
+                                            type="text"
+                                            name="district"
+                                            value={formData.district}
+                                            onChange={handleChange}
+                                            placeholder="Seu bairro"
+                                            className="w-full rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3 outline-none transition focus:border-violet-400"
+                                        />
+
+                                        {errors.district && (
+                                            <p className="mt-2 text-sm text-red-400">
+                                                {errors.district}
                                             </p>
                                         )}
                                     </div>

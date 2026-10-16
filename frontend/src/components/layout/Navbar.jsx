@@ -55,6 +55,11 @@ export default function Navbar({
                     <NavLink to="/contact">
                         Contato
                     </NavLink>
+
+                    <NavLink to="/tracking">
+                        Rastreie seu Pedido
+                    </NavLink>
+
                     <Link
                         to="/favorites"
                         className="relative flex items-center justify-center text-slate-300 transition hover:text-pink-400"

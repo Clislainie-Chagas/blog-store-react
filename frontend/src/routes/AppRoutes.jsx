@@ -26,6 +26,7 @@ import PaymentPending from "../pages/PaymentPending";
 import AdminMessages from "../pages/AdminMessages";
 import AdminBlog from "../pages/AdminBlog";
 import BlogPost from "../pages/BlogPost";
+import Tracking from "../pages/Tracking";
 
 export default function AppRoutes({
     favorites,
@@ -64,6 +65,7 @@ export default function AppRoutes({
                     <Route path="/about" element={<About />} />
 
                     <Route path="/contact" element={<Contact />} />
+                    <Route path="/tracking" element={<Tracking />} />
 
                     <Route path="/books/:id" element={<BookDetails
                         favorites={favorites} onFavorite={onFavorite} />} />

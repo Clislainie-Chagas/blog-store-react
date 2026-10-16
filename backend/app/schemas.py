@@ -53,6 +53,7 @@ class OrderCreate(BaseModel):
     customer_name: str
     customer_email: str
     customer_phone: str | None = None
+    customer_document: str | None = None
 
     shipping_cep: str | None = None
     shipping_state: str | None = None
@@ -60,6 +61,7 @@ class OrderCreate(BaseModel):
     shipping_street: str | None = None
     shipping_number: str | None = None
     shipping_complement: str | None = None
+    shipping_district: str | None = None
 
     shipping_service_id: int | None = None
     shipping_service_name: str | None = None
@@ -93,6 +95,7 @@ class OrderResponse(BaseModel):
     customer_name: str
     customer_email: str
     customer_phone: str | None = None
+    customer_document: str | None = None
 
     shipping_cep: str | None = None
     shipping_state: str | None = None
@@ -100,6 +103,7 @@ class OrderResponse(BaseModel):
     shipping_street: str | None = None
     shipping_number: str | None = None
     shipping_complement: str | None = None
+    shipping_district: str | None = None
 
     shipping_service_id: int | None = None
     shipping_service_name: str | None = None
@@ -116,6 +120,12 @@ class OrderResponse(BaseModel):
     payment_provider: str | None = None
     payment_reference: str | None = None
     
+    melhor_envio_order_id: str | None = None
+    melhor_envio_purchase_id: str | None = None
+    melhor_envio_generate_key: str | None = None
+    tracking_code: str | None = None
+    shipping_email_status: str = "pending"
+    shipping_email_sent_at: datetime | None = None
     created_at: datetime
     items: list[OrderItemResponse]
 

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session
 
@@ -53,3 +53,33 @@ def get_contact_messages(
     )
 
     return messages
+
+
+@router.patch("/admin/messages/{message_id}/reply")
+def mark_contact_message_as_replied(
+    message_id: int,
+    db: Session = Depends(get_db),
+    admin_id: int = Depends(get_current_admin),
+):
+    contact_message = (
+        db.query(ContactMessage)
+        .filter(ContactMessage.id == message_id)
+        .first()
+    )
+
+    if not contact_message:
+        raise HTTPException(
+            status_code=404,
+            detail="Mensagem não encontrada."
+        )
+
+    contact_message.is_replied = True
+
+    db.commit()
+    db.refresh(contact_message)
+
+    return {
+        "id": contact_message.id,
+        "is_replied": contact_message.is_replied,
+        "message": "Mensagem marcada como respondida."
+    }

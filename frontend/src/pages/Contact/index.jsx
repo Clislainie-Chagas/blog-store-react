@@ -90,7 +90,7 @@ export default function Contact() {
 
             {/* ÁREA DE CONTATO */}
             <section className="border-t border-white/5 bg-slate-950">
-                <div className="mx-auto max-w-7xl px-6 pb-24 lg:px-8">
+                <div className="mx-auto max-w-7xl px-6 py-24 lg:px-8">
 
                     <div className="grid gap-12 lg:grid-cols-2">
 

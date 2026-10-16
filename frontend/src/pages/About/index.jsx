@@ -14,7 +14,7 @@ export default function About() {
                             SOBRE O ARTE DA MAGIA
                         </span>
 
-                        <h1 className="max-w-4xl text-4xl font-bold leading-tight sm:text-5xl lg:text-7xl">
+                        <h1 className="max-w-4xl text-4xl font-bold leading-tight sm:text-5xl lg:text-5xl">
                             Onde conhecimento,
                             <span className="block bg-gradient-to-r from-purple-300 via-fuchsia-300 to-indigo-300 bg-clip-text text-transparent">
                                 simbolismo e transformação

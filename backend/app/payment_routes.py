@@ -11,7 +11,7 @@ from mercadopago.webhook import (
 from sqlalchemy.orm import Session
 
 from app.database import SessionLocal
-from app.models import Order
+from app.models import Order, Product
 
 
 load_dotenv()
@@ -41,33 +41,57 @@ def create_checkout_pro(
     order_id: int,
     db: Session = Depends(get_db),
 ):
-    order = db.query(Order).filter(Order.id == order_id).first()
+    order = db.query(Order).filter(
+        Order.id == order_id
+    ).first()
 
     if not order:
         raise HTTPException(
             status_code=404,
             detail="Pedido não encontrado",
         )
+    # Impede gerar pagamento para pedido cancelado
+    if order.status == "cancelled":
+        raise HTTPException(
+            status_code=400,
+            detail="Este pedido foi cancelado e não pode ser pago.",
+        )
+    # Bloqueia cancelamento quando já existe
+    # uma preferência de pagamento no Mercado Pago.
+    if (
+        order.payment_provider == "mercado_pago"
+        and order.payment_reference
+    ):
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                "Este pedido possui um pagamento iniciado "
+                "no Mercado Pago. Verifique a situação "
+                "do pagamento antes de cancelar."
+            ),
+        )
 
-    access_token = os.getenv("MERCADO_PAGO_ACCESS_TOKEN")
+
+    # Impede gerar um novo pagamento para pedido já pago
+    if order.payment_status == "paid":
+        raise HTTPException(
+            status_code=400,
+            detail="Este pedido já está pago",
+        )
+
+    access_token = os.getenv(
+        "MERCADO_PAGO_ACCESS_TOKEN"
+    )
+
     frontend_url = os.getenv(
         "FRONTEND_URL",
         "http://localhost:5173",
-    )
-    notification_url = os.getenv(
-        "MERCADO_PAGO_NOTIFICATION_URL"
     )
 
     if not access_token:
         raise HTTPException(
             status_code=500,
             detail="Credencial do Mercado Pago não configurada",
-        )
-
-    if not notification_url:
-        raise HTTPException(
-            status_code=500,
-            detail="URL de notificação do Mercado Pago não configurada",
         )
 
     sdk = mercadopago.SDK(access_token)
@@ -83,8 +107,6 @@ def create_checkout_pro(
         ],
         "external_reference": str(order.id),
 
-        "notification_url": notification_url,
-
         "back_urls": {
             "success": (
                 f"{frontend_url}/payment/success/{order.id}"
@@ -98,7 +120,9 @@ def create_checkout_pro(
         },
     }
 
-    response = sdk.preference().create(preference_data)
+    response = sdk.preference().create(
+        preference_data
+    )
 
     if response.get("status") not in [200, 201]:
         raise HTTPException(
@@ -106,7 +130,10 @@ def create_checkout_pro(
             detail=response.get("response"),
         )
 
-    preference = response.get("response", {})
+    preference = response.get(
+        "response",
+        {},
+    )
 
     order.payment_provider = "mercado_pago"
     order.payment_reference = preference.get("id")
@@ -133,18 +160,21 @@ async def mercado_pago_webhook(
     request: Request,
     body: dict,
 ):
-    # O Checkout Pro também pode enviar notificações antigas
-    # do tipo merchant_order.
-    # Não usamos esse evento para atualizar o pagamento.
+    # Ignora notificações antigas merchant_order
     topic = request.query_params.get("topic")
 
     if topic == "merchant_order":
         return {
             "status": "ignored",
             "reason": (
-                "merchant_order não é processado por este webhook"
+                "merchant_order não é processado "
+                "por este webhook"
             ),
         }
+
+    # -----------------------------------------------------
+    # VALIDAÇÃO DA ASSINATURA DO WEBHOOK
+    # -----------------------------------------------------
 
     webhook_secret = os.getenv(
         "MERCADO_PAGO_WEBHOOK_SECRET"
@@ -153,17 +183,35 @@ async def mercado_pago_webhook(
     if not webhook_secret:
         raise HTTPException(
             status_code=500,
-            detail="Chave secreta do webhook não configurada",
+            detail=(
+                "Chave secreta do webhook "
+                "não configurada"
+            ),
         )
 
-    x_signature = request.headers.get("x-signature")
-    x_request_id = request.headers.get("x-request-id")
-    data_id = request.query_params.get("data.id")
+    x_signature = request.headers.get(
+        "x-signature"
+    )
 
-    if not x_signature or not x_request_id or not data_id:
+    x_request_id = request.headers.get(
+        "x-request-id"
+    )
+
+    data_id = request.query_params.get(
+        "data.id"
+    )
+
+    if (
+        not x_signature
+        or not x_request_id
+        or not data_id
+    ):
         raise HTTPException(
             status_code=400,
-            detail="Dados obrigatórios do webhook não encontrados",
+            detail=(
+                "Dados obrigatórios do webhook "
+                "não encontrados"
+            ),
         )
 
     try:
@@ -180,6 +228,10 @@ async def mercado_pago_webhook(
             detail="Assinatura do webhook inválida",
         )
 
+    # -----------------------------------------------------
+    # CONSULTA O PAGAMENTO NO MERCADO PAGO
+    # -----------------------------------------------------
+
     access_token = os.getenv(
         "MERCADO_PAGO_ACCESS_TOKEN"
     )
@@ -187,54 +239,87 @@ async def mercado_pago_webhook(
     if not access_token:
         raise HTTPException(
             status_code=500,
-            detail="Access Token do Mercado Pago não configurado",
+            detail=(
+                "Access Token do Mercado Pago "
+                "não configurado"
+            ),
         )
 
     sdk = mercadopago.SDK(access_token)
 
-    payment_response = sdk.payment().get(data_id)
+    payment_response = sdk.payment().get(
+        data_id
+    )
 
-    # O simulador pode usar um ID fictício, como 1234567.
-    # Nesse caso, a consulta ao pagamento retorna 404.
-    # Mesmo assim, o webhook foi recebido e validado.
+    # O simulador pode utilizar um ID fictício.
     if payment_response.get("status") != 200:
         return {
             "status": "ignored",
-            "reason": "Pagamento não encontrado no Mercado Pago",
+            "reason": (
+                "Pagamento não encontrado "
+                "no Mercado Pago"
+            ),
         }
 
-    payment_data = payment_response.get("response", {})
+    payment_data = payment_response.get(
+        "response",
+        {},
+    )
 
-    payment_status = payment_data.get("status")
+    payment_status = payment_data.get(
+        "status"
+    )
+
     external_reference = payment_data.get(
         "external_reference"
     )
+
     transaction_amount = payment_data.get(
         "transaction_amount"
     )
-    currency_id = payment_data.get("currency_id")
+
+    currency_id = payment_data.get(
+        "currency_id"
+    )
+
+    # -----------------------------------------------------
+    # IDENTIFICA O PEDIDO
+    # -----------------------------------------------------
 
     if not external_reference:
         return {
             "status": "ignored",
-            "reason": "Pagamento sem referência de pedido",
+            "reason": (
+                "Pagamento sem referência "
+                "de pedido"
+            ),
         }
 
     try:
-        order_id = int(external_reference)
+        order_id = int(
+            external_reference
+        )
 
     except (ValueError, TypeError):
         return {
             "status": "ignored",
-            "reason": "Referência de pedido inválida",
+            "reason": (
+                "Referência de pedido inválida"
+            ),
         }
 
     db = SessionLocal()
 
     try:
+        # Bloqueia a linha do pedido enquanto este
+        # webhook está sendo processado.
+        #
+        # Isso ajuda a impedir que dois webhooks
+        # simultâneos descontem o estoque duas vezes.
         order = (
             db.query(Order)
             .filter(Order.id == order_id)
+            .with_for_update()
             .first()
         )
 
@@ -243,17 +328,42 @@ async def mercado_pago_webhook(
                 "status": "ignored",
                 "reason": "Pedido não encontrado",
             }
+        # -------------------------------------------------
+        # PROTEÇÃO PARA PEDIDOS CANCELADOS
+        # -------------------------------------------------
+        if order.status == "cancelled":
+            return {
+                "status": "ignored",
+                "reason": (
+                    "Pedido cancelado. "
+                    "Verificar manualmente se houve pagamento "
+                    "e se é necessário realizar estorno."
+                ),
+                "order_id": order.id,
+            }
+
+        # -------------------------------------------------
+        # CONFERE MOEDA
+        # -------------------------------------------------
 
         if currency_id != "BRL":
             return {
                 "status": "ignored",
-                "reason": "Moeda do pagamento inválida",
+                "reason": (
+                    "Moeda do pagamento inválida"
+                ),
             }
+
+        # -------------------------------------------------
+        # CONFERE VALOR
+        # -------------------------------------------------
 
         if transaction_amount is None:
             return {
                 "status": "ignored",
-                "reason": "Valor do pagamento não informado",
+                "reason": (
+                    "Valor do pagamento não informado"
+                ),
             }
 
         payment_amount = Decimal(
@@ -264,29 +374,121 @@ async def mercado_pago_webhook(
             return {
                 "status": "ignored",
                 "reason": (
-                    "Valor do pagamento diferente do pedido"
+                    "Valor do pagamento "
+                    "diferente do pedido"
                 ),
             }
 
+        # -------------------------------------------------
+        # PAGAMENTO APROVADO
+        # -------------------------------------------------
+
         if payment_status == "approved":
-            order.payment_status = "paid"
+
+            # Só baixa o estoque quando o pedido
+            # ainda NÃO estava pago.
+            #
+            # Se o Mercado Pago repetir o webhook,
+            # essa parte não será executada novamente.
+            if order.payment_status != "paid":
+
+                # Primeiro verifica se existe estoque
+                # para TODOS os itens.
+                for item in order.items:
+
+                    product = (
+                        db.query(Product)
+                        .filter(
+                            Product.id
+                            == item.product_id
+                        )
+                        .with_for_update()
+                        .first()
+                    )
+
+                    if not product:
+                        raise HTTPException(
+                            status_code=500,
+                            detail=(
+                                f"Produto "
+                                f"{item.product_id} "
+                                f"não encontrado"
+                            ),
+                        )
+
+                    if product.stock < item.quantity:
+                        raise HTTPException(
+                            status_code=409,
+                            detail=(
+                                "Estoque insuficiente "
+                                f"para {product.name}"
+                            ),
+                        )
+
+                # Depois de validar todos,
+                # realiza a baixa do estoque.
+                for item in order.items:
+
+                    product = (
+                        db.query(Product)
+                        .filter(
+                            Product.id
+                            == item.product_id
+                        )
+                        .first()
+                    )
+
+                    product.stock -= item.quantity
+
+                order.payment_status = "paid"
+
+            # Se já estava pago, mantém como paid
+            # sem baixar o estoque novamente.
+            else:
+                order.payment_status = "paid"
+
+        # -------------------------------------------------
+        # PAGAMENTO PENDENTE
+        # -------------------------------------------------
 
         elif payment_status in [
             "pending",
             "in_process",
         ]:
-            order.payment_status = "pending"
+
+            # Um webhook antigo/pending não deve
+            # transformar um pedido já pago em pendente.
+            if order.payment_status != "paid":
+                order.payment_status = "pending"
+
+        # -------------------------------------------------
+        # PAGAMENTO RECUSADO/CANCELADO
+        # -------------------------------------------------
 
         elif payment_status in [
             "rejected",
             "cancelled",
         ]:
-            order.payment_status = "failed"
+
+            # Também não sobrescreve um pedido
+            # que já foi confirmado como pago.
+            if order.payment_status != "paid":
+                order.payment_status = "failed"
+
+        # -------------------------------------------------
+        # OUTROS STATUS
+        # -------------------------------------------------
 
         else:
-            order.payment_status = (
-                payment_status or "unknown"
-            )
+
+            if order.payment_status != "paid":
+                order.payment_status = (
+                    payment_status or "unknown"
+                )
+
+        # -------------------------------------------------
+        # MÉTODO DE PAGAMENTO
+        # -------------------------------------------------
 
         order.payment_method = payment_data.get(
             "payment_method_id"
